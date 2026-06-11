@@ -12,17 +12,21 @@
             background: #f3f4f6;
         }
 
-        /* ===== SIDEBAR ===== */
+        /* ================= LAYOUT WRAPPER ================= */
+        .layout {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ================= SIDEBAR ================= */
         .sidebar {
             width: 240px;
-            height: 100vh;
             background: #111827;
             color: white;
             padding: 20px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            transition: all 0.3s ease;
+            transition: width 0.3s ease;
+            flex-shrink: 0;
             overflow-x: hidden;
         }
 
@@ -67,18 +71,21 @@
             color: white;
         }
 
-        /* ===== MAIN ===== */
+        /* hide labels when collapsed */
+        .sidebar.collapsed small,
+        .sidebar.collapsed hr {
+            display: none;
+        }
+
+        /* ================= MAIN ================= */
         .main {
-            margin-left: 240px;
+            flex: 1;
             padding: 20px;
-            transition: margin-left 0.3s ease;
+            overflow-y: auto;
+            transition: all 0.3s ease;
         }
 
-        .main.expanded {
-            margin-left: 70px;
-        }
-
-        /* ===== TOGGLE BUTTON ===== */
+        /* ================= TOGGLE BUTTON ================= */
         .toggle-btn {
             background: #2563eb;
             border: none;
@@ -88,12 +95,21 @@
             cursor: pointer;
             margin-bottom: 10px;
             font-size: 14px;
+            width: 100%;
         }
 
-        /* ===== MOBILE ===== */
+        /* ================= MOBILE ================= */
         @media (max-width: 768px) {
 
+            .layout {
+                display: block;
+            }
+
             .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
                 transform: translateX(-100%);
                 width: 240px;
                 z-index: 999;
@@ -104,13 +120,15 @@
             }
 
             .main {
-                margin-left: 0 !important;
+                margin-left: 0;
             }
         }
     </style>
 </head>
 
 <body>
+
+<div class="layout">
 
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
@@ -159,23 +177,23 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- SCRIPT -->
-    <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById("sidebar");
-            const main = document.getElementById("main");
-            const icon = document.getElementById("toggleIcon");
+</div>
 
-            sidebar.classList.toggle("collapsed");
-            main.classList.toggle("expanded");
+<!-- SCRIPT -->
+<script>
+function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const icon = document.getElementById("toggleIcon");
 
-            if (sidebar.classList.contains("collapsed")) {
-                icon.innerText = ">>";
-            } else {
-                icon.innerText = "<<";
-            }
-        }
-    </script>
+    sidebar.classList.toggle("collapsed");
+
+    if (sidebar.classList.contains("collapsed")) {
+        icon.innerText = ">>";
+    } else {
+        icon.innerText = "<<";
+    }
+}
+</script>
 
 </body>
 </html>
