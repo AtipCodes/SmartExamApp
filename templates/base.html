@@ -3,66 +3,161 @@
 <head>
     <title>{% block title %}Licenser System{% endblock %}</title>
 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <style>
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            display: flex;
+            background: #f3f4f6;
         }
 
-        /* Sidebar */
+        /* ===== SIDEBAR ===== */
         .sidebar {
-            width: 220px;
+            width: 240px;
             height: 100vh;
-            background: #1f2937;
+            background: #111827;
             color: white;
             padding: 20px;
             position: fixed;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease;
         }
 
         .sidebar h3 {
             margin-top: 0;
+            font-size: 18px;
         }
 
         .sidebar a {
             display: block;
-            color: white;
+            color: #d1d5db;
             text-decoration: none;
             padding: 10px;
-            margin: 5px 0;
-            border-radius: 5px;
+            margin: 6px 0;
+            border-radius: 6px;
+            font-size: 14px;
         }
 
         .sidebar a:hover {
             background: #374151;
+            color: white;
         }
 
-        /* Main content */
+        /* ACTIVE LINK */
+        .sidebar a.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        /* ===== MAIN ===== */
         .main {
-            margin-left: 220px;
+            margin-left: 240px;
             padding: 20px;
-            width: 100%;
+        }
+
+        /* ===== TOP BAR (mobile) ===== */
+        .topbar {
+            display: none;
+            background: #111827;
+            color: white;
+            padding: 10px;
+        }
+
+        .menu-btn {
+            background: #2563eb;
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* ===== MOBILE ===== */
+        @media (max-width: 768px) {
+
+            .sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                z-index: 999;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main {
+                margin-left: 0;
+            }
+
+            .topbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- Sidebar -->
-    <div class="sidebar">
+    <!-- TOPBAR (mobile only) -->
+    <div class="topbar">
+        <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
+        <div>Licenser System</div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
+
         <h3>Licenser System</h3>
         <hr>
 
-        <a href="{{ url_for('licenser_dashboard') }}">Dashboard</a>
-        <a href="{{ url_for('requests_list') }}">Requests</a>
-        <a href="{{ url_for('change_password') }}">Change Password</a>
-        <a href="{{ url_for('licenser_logout') }}">Logout</a>
+        <a href="{{ url_for('licenser_dashboard') }}"
+           class="{% if request.endpoint == 'licenser_dashboard' %}active{% endif %}">
+           Dashboard
+        </a>
+
+        <a href="{{ url_for('requests_list') }}"
+           class="{% if request.endpoint == 'requests_list' %}active{% endif %}">
+           Requests
+        </a>
+
+        <a href="{{ url_for('change_password') }}"
+           class="{% if request.endpoint == 'change_password' %}active{% endif %}">
+           Change Password
+        </a>
+
+        <!-- ADMIN ONLY LINKS -->
+        {% if session.get('licenser_id') %}
+            <hr>
+            <small style="color:#9ca3af;">Admin Tools</small>
+
+            <a href="{{ url_for('api_logs') }}"
+               class="{% if request.endpoint == 'api_logs' %}active{% endif %}">
+               API Logs
+            </a>
+        {% endif %}
+
+        <hr>
+
+        <a href="{{ url_for('licenser_logout') }}">
+            Logout
+        </a>
     </div>
 
-    <!-- Main content -->
+    <!-- MAIN CONTENT -->
     <div class="main">
         {% block content %}{% endblock %}
     </div>
+
+    <!-- MOBILE SCRIPT -->
+    <script>
+        function toggleMenu() {
+            document.getElementById("sidebar").classList.toggle("show");
+        }
+    </script>
 
 </body>
 </html>
