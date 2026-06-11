@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Licenser Dashboard{% endblock %}
+
+{% block content %}
+
+<h2>Licenser Dashboard</h2>
+
+<a href="{{ url_for('licenser_logout') }}">Logout</a>
+
+<hr>
+
+<table border="1" cellpadding="5">
+
+    <tr>
+        <th>ID</th>
+        <th>Admin</th>
+		<th>Email</th>
+        <th>Reason</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+
+    {% for r in requests_list %}
+    <tr>
+        <td>{{ r.id }}</td>
+        <td>{{ r.admin_name }}</td>
+		<td>{{ r.admin_email }}</td>
+        <td>{{ r.reason }}</td>
+        <td>{{ r.status }}</td>
+        <td>
+			<a href="{{ url_for('approve_page', req_id=r.id) }}">
+				Open
+			</a>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+{% endblock %}

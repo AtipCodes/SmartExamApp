@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Licenser Dashboard{% endblock %}
+
+{% block content %}
+
+
+<h2>API Logs</h2>
+
+<table border="1">
+<tr>
+    <th>Endpoint</th>
+    <th>Method</th>
+    <th>Status</th>
+    <th>IP</th>
+    <th>Time</th>
+</tr>
+
+{% for log in logs %}
+<tr>
+    <td>{{ log.endpoint }}</td>
+    <td>{{ log.method }}</td>
+    <td>{{ log.status }}</td>
+    <td>{{ log.ip_address }}</td>
+    <td>{{ log.created_at }}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

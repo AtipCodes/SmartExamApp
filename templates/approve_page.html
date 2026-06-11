@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Approve Request{% endblock %}
+
+{% block content %}
+
+<h2>Approve Request #{{ req.id }}</h2>
+
+<p><strong>Admin:</strong> {{ req.admin_name }}</p>
+
+<p><strong>Reason:</strong> {{ req.reason }}</p>
+
+<hr>
+
+<form method="POST">
+
+    <label>Licenser Email</label><br>
+    <input type="text" name="licenser_email" required><br><br>
+
+    <label>App Password</label><br>
+    <input type="text" name="licenser_password" required><br><br>
+
+    <button type="submit">Approve Request</button>
+
+</form>
+
+{% endblock %}
