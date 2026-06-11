@@ -5,24 +5,15 @@ from flask import (
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from sqlalchemy import inspect, text
-<<<<<<< HEAD
 from werkzeug.security import generate_password_hash, check_password_hash
 from cryptography.fernet import Fernet
 from functools import wraps
-=======
-from werkzeug.security import (
-    generate_password_hash,
-    check_password_hash
-)
-from cryptography.fernet import Fernet
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 import os
 
 # ================= APP INIT =================
 app = Flask(__name__)
 
-<<<<<<< HEAD
-# ================= DATABASE (POSTGRES + SQLITE FALLBACK) =================
+# ================= DATABASE =================
 uri = os.getenv("DATABASE_URL")
 
 if uri and uri.startswith("postgres://"):
@@ -31,24 +22,13 @@ if uri and uri.startswith("postgres://"):
 app.config["SQLALCHEMY_DATABASE_URI"] = uri or "sqlite:///licenser.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-=======
-# ================= DATABASE =================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///licenser.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 db = SQLAlchemy(app)
 
 # ================= SECURITY =================
 app.secret_key = os.getenv("SECRET_KEY", "dev-secret-key")
 API_KEY = os.getenv("API_KEY", "dev-secret")
 
-<<<<<<< HEAD
 # ================= FERNET =================
-=======
-# ================= FERNET KEY (FIXED FOR RENDER) =================
-# IMPORTANT: MUST be set in Render environment variables
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 FERNET_KEY = os.getenv("FERNET_KEY")
 
 if not FERNET_KEY:
@@ -56,10 +36,6 @@ if not FERNET_KEY:
 
 cipher = Fernet(FERNET_KEY.encode())
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 # ================= SCHEMA SYNC =================
 def sync_database_schema():
     db.create_all()
@@ -77,12 +53,7 @@ def sync_database_schema():
             continue
 
         existing_columns = {
-<<<<<<< HEAD
             col["name"] for col in inspector.get_columns(table_name)
-=======
-            col["name"]
-            for col in inspector.get_columns(table_name)
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
         }
 
         for column in model.__table__.columns:
@@ -99,10 +70,6 @@ def sync_database_schema():
                 """
 
                 db.session.execute(text(sql))
-<<<<<<< HEAD
-=======
-
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
                 print(f"[SCHEMA] Added {table_name}.{column.name}")
 
             except Exception as e:
@@ -110,10 +77,7 @@ def sync_database_schema():
 
     db.session.commit()
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 # ================= MODELS =================
 class UpdateRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -129,17 +93,22 @@ class UpdateRequest(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# NEW: API LOG TABLE
+class APILog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    endpoint = db.Column(db.String(120))
+    method = db.Column(db.String(10))
+    payload = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class LicenserUser(db.Model):
     __tablename__ = "licenser_user"
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-<<<<<<< HEAD
-
     role = db.Column(db.String(20), default="licenser")
-=======
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -147,10 +116,7 @@ class LicenserUser(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 # ================= ENCRYPTION =================
 def encrypt_text(text):
     return cipher.encrypt(text.encode()).decode()
@@ -158,27 +124,19 @@ def encrypt_text(text):
 def decrypt_text(text):
     return cipher.decrypt(text.encode()).decode()
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
-# ================= DEFAULT USER =================
-def ensure_licenser_created():
-    licenser = LicenserUser.query.first()
-
-    if not licenser:
-<<<<<<< HEAD
-        licenser = LicenserUser(username="licenser", role="admin")
-=======
-        licenser = LicenserUser(username="licenser")
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
-        licenser.set_password("ChangeMe123")
-
-        db.session.add(licenser)
+# ================= LOGGING HELPER =================
+def log_api(endpoint):
+    try:
+        log = APILog(
+            endpoint=endpoint,
+            method=request.method,
+            payload=str(request.get_json() or {})
+        )
+        db.session.add(log)
         db.session.commit()
-
-<<<<<<< HEAD
-        print("[INIT] Default admin account created")
+    except:
+        pass
 
 
 # ================= ADMIN DECORATOR =================
@@ -200,6 +158,20 @@ def admin_required(f):
     return wrapper
 
 
+# ================= DEFAULT USER =================
+def ensure_licenser_created():
+    user = LicenserUser.query.first()
+
+    if not user:
+        user = LicenserUser(username="licenser", role="admin")
+        user.set_password("ChangeMe123")
+
+        db.session.add(user)
+        db.session.commit()
+
+        print("[INIT] Default admin account created")
+
+
 # ================= API =================
 @app.route("/request-update", methods=["POST"])
 def request_update():
@@ -208,19 +180,6 @@ def request_update():
         return jsonify({"error": "Unauthorized"}), 401
 
     data = request.get_json() or {}
-=======
-        print("[LICENSER] Default account created")
-
-# ================= API =================
-@app.route("/request-update", methods=["POST"])
-def request_update():
-    api_key = request.headers.get("X-API-KEY")
-
-    if api_key != API_KEY:
-        return jsonify({"error": "Unauthorized"}), 401
-
-    data = request.json
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 
     req = UpdateRequest(
         admin_name=data["admin_name"],
@@ -231,12 +190,17 @@ def request_update():
     db.session.add(req)
     db.session.commit()
 
+    log_api("/request-update")
+
     return jsonify({"success": True, "request_id": req.id})
 
 
 @app.route("/requests")
 @admin_required
 def requests_list():
+
+    log_api("/requests")
+
     all_requests = UpdateRequest.query.all()
 
     return jsonify([
@@ -251,27 +215,19 @@ def requests_list():
 
 
 @app.route("/approve/<int:req_id>", methods=["POST"])
-<<<<<<< HEAD
 @admin_required
 def approve_request(req_id):
 
     req = UpdateRequest.query.get_or_404(req_id)
     data = request.get_json() or {}
-=======
-def approve_request(req_id):
-
-    if not session.get("licenser_id"):
-        return jsonify({"error": "login required"}), 403
-
-    req = UpdateRequest.query.get_or_404(req_id)
-    data = request.json
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 
     req.licenser_email = data["licenser_email"]
     req.licenser_password = encrypt_text(data["licenser_password"])
     req.status = "approved"
 
     db.session.commit()
+
+    log_api("/approve")
 
     return jsonify({"success": True})
 
@@ -280,6 +236,8 @@ def approve_request(req_id):
 def get_update(req_id):
 
     req = UpdateRequest.query.get_or_404(req_id)
+
+    log_api("/get-update")
 
     if req.status != "approved":
         return jsonify({"status": req.status})
@@ -290,10 +248,17 @@ def get_update(req_id):
         "licenser_password": decrypt_text(req.licenser_password)
     })
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
+# ================= API LOGS DASHBOARD (NEW) =================
+@app.route("/api-logs")
+@admin_required
+def api_logs():
+
+    logs = APILog.query.order_by(APILog.timestamp.desc()).all()
+
+    return render_template("api_logs.html", logs=logs)
+
+
 # ================= AUTH =================
 @app.route("/")
 def home():
@@ -320,8 +285,6 @@ def licenser_login():
     return render_template("licenser_login.html")
 
 
-<<<<<<< HEAD
-# ================= PASSWORD CHANGE =================
 @app.route("/licenser/change-password", methods=["GET", "POST"])
 def change_password():
 
@@ -352,8 +315,6 @@ def change_password():
     return render_template("change_password.html")
 
 
-=======
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
 @app.route("/licenser/logout")
 def licenser_logout():
     session.clear()
@@ -398,12 +359,7 @@ def approve_page(req_id):
 
     return render_template("approve_page.html", req=req)
 
-# ================= INIT (RENDER SAFE) =================
-with app.app_context():
-    sync_database_schema()
-    ensure_licenser_created()
 
-<<<<<<< HEAD
 # ================= INIT =================
 with app.app_context():
     sync_database_schema()
@@ -414,8 +370,3 @@ with app.app_context():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-=======
-# ================= RUN =================
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
->>>>>>> 8f15c204a39791ee8aa383f3b13564aaa8d25a92
