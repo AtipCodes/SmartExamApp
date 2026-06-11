@@ -1,16 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{% block title %}App{% endblock %}</title>
+    <title>{% block title %}Licenser System{% endblock %}</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 220px;
+            height: 100vh;
+            background: #1f2937;
+            color: white;
+            padding: 20px;
+            position: fixed;
+        }
+
+        .sidebar h3 {
+            margin-top: 0;
+        }
+
+        .sidebar a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .sidebar a:hover {
+            background: #374151;
+        }
+
+        /* Main content */
+        .main {
+            margin-left: 220px;
+            padding: 20px;
+            width: 100%;
+        }
+    </style>
 </head>
+
 <body>
 
-    <nav>
+    <!-- Sidebar -->
+    <div class="sidebar">
         <h3>Licenser System</h3>
         <hr>
-    </nav>
 
-    <div>
+        <a href="{{ url_for('licenser_dashboard') }}">Dashboard</a>
+        <a href="{{ url_for('requests_list') }}">Requests</a>
+        <a href="{{ url_for('change_password') }}">Change Password</a>
+        <a href="{{ url_for('licenser_logout') }}">Logout</a>
+    </div>
+
+    <!-- Main content -->
+    <div class="main">
         {% block content %}{% endblock %}
     </div>
 
