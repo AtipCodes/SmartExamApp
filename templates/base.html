@@ -22,12 +22,22 @@
             position: fixed;
             top: 0;
             left: 0;
-            transition: transform 0.3s ease;
+            transition: all 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        .sidebar.collapsed {
+            width: 70px;
+            padding: 20px 10px;
         }
 
         .sidebar h3 {
             margin-top: 0;
             font-size: 18px;
+        }
+
+        .sidebar.collapsed h3 {
+            display: none;
         }
 
         .sidebar a {
@@ -38,6 +48,13 @@
             margin: 6px 0;
             border-radius: 6px;
             font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .sidebar.collapsed a {
+            text-align: center;
+            font-size: 12px;
         }
 
         .sidebar a:hover {
@@ -45,7 +62,6 @@
             color: white;
         }
 
-        /* ACTIVE LINK */
         .sidebar a.active {
             background: #2563eb;
             color: white;
@@ -55,23 +71,23 @@
         .main {
             margin-left: 240px;
             padding: 20px;
+            transition: margin-left 0.3s ease;
         }
 
-        /* ===== TOP BAR (mobile) ===== */
-        .topbar {
-            display: none;
-            background: #111827;
-            color: white;
-            padding: 10px;
+        .main.expanded {
+            margin-left: 70px;
         }
 
-        .menu-btn {
+        /* ===== TOGGLE BUTTON ===== */
+        .toggle-btn {
             background: #2563eb;
             border: none;
             color: white;
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-radius: 5px;
             cursor: pointer;
+            margin-bottom: 10px;
+            font-size: 14px;
         }
 
         /* ===== MOBILE ===== */
@@ -79,7 +95,7 @@
 
             .sidebar {
                 transform: translateX(-100%);
-                position: fixed;
+                width: 240px;
                 z-index: 999;
             }
 
@@ -88,13 +104,7 @@
             }
 
             .main {
-                margin-left: 0;
-            }
-
-            .topbar {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
+                margin-left: 0 !important;
             }
         }
     </style>
@@ -102,14 +112,12 @@
 
 <body>
 
-    <!-- TOPBAR (mobile only) -->
-    <div class="topbar">
-        <button class="menu-btn" onclick="toggleMenu()">☰ Menu</button>
-        <div>Licenser System</div>
-    </div>
-
     <!-- SIDEBAR -->
     <div class="sidebar" id="sidebar">
+
+        <button class="toggle-btn" onclick="toggleSidebar()">
+            <span id="toggleIcon"><<</span>
+        </button>
 
         <h3>Licenser System</h3>
         <hr>
@@ -129,7 +137,6 @@
            Change Password
         </a>
 
-        <!-- ADMIN ONLY LINKS -->
         {% if session.get('licenser_id') %}
             <hr>
             <small style="color:#9ca3af;">Admin Tools</small>
@@ -147,15 +154,26 @@
         </a>
     </div>
 
-    <!-- MAIN CONTENT -->
-    <div class="main">
+    <!-- MAIN -->
+    <div class="main" id="main">
         {% block content %}{% endblock %}
     </div>
 
-    <!-- MOBILE SCRIPT -->
+    <!-- SCRIPT -->
     <script>
-        function toggleMenu() {
-            document.getElementById("sidebar").classList.toggle("show");
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const main = document.getElementById("main");
+            const icon = document.getElementById("toggleIcon");
+
+            sidebar.classList.toggle("collapsed");
+            main.classList.toggle("expanded");
+
+            if (sidebar.classList.contains("collapsed")) {
+                icon.innerText = ">>";
+            } else {
+                icon.innerText = "<<";
+            }
         }
     </script>
 
