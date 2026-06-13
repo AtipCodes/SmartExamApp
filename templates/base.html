@@ -123,6 +123,11 @@
                 margin-left: 0;
             }
         }
+		.sidebar {
+			transition:
+				transform 0.3s ease,
+				width 0.3s ease;
+		}
     </style>
 </head>
 
@@ -139,6 +144,16 @@
 
         <h3>Licenser System</h3>
         <hr>
+		{% if session.get('licenser_id') %}
+		<div style="
+			background:#1f2937;
+			padding:10px;
+			border-radius:8px;
+			margin-bottom:15px;
+		">
+			Logged In
+		</div>
+		{% endif %}		
 
         <a href="{{ url_for('licenser_dashboard') }}"
            class="{% if request.endpoint == 'licenser_dashboard' %}active{% endif %}">
@@ -167,9 +182,10 @@
 
         <hr>
 
-        <a href="{{ url_for('licenser_logout') }}">
-            Logout
-        </a>
+		<a href="{{ url_for('licenser_logout') }}"
+		   style="background:#dc2626;color:white;">
+		   Logout
+		</a>
     </div>
 
     <!-- MAIN -->
