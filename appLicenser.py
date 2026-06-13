@@ -194,14 +194,9 @@ def request_update():
 
     return jsonify({"success": True, "request_id": req.id})
 
-
-@app.route("/requests")
+@app.route("/api/requests")
 @admin_required
-def requests_list():
-
-    log_api("/requests")
-
-    all_requests = UpdateRequest.query.all()
+def requests_api():
 
     return jsonify([
         {
@@ -210,8 +205,23 @@ def requests_list():
             "reason": r.reason,
             "status": r.status
         }
-        for r in all_requests
+        for r in UpdateRequest.query.all()
     ])
+
+@app.route("/requests")
+@admin_required
+def requests_list():
+
+    log_api("/requests")
+
+    requests_data = UpdateRequest.query.order_by(
+        UpdateRequest.id.desc()
+    ).all()
+
+    return render_template(
+        "requests.html",
+        requests_list=requests_data
+    )
 
 
 @app.route("/approve/<int:req_id>", methods=["POST"])
