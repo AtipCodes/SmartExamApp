@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Requests{% endblock %}
+
+{% block content %}
+
+<h2>Update Requests</h2>
+
+<table style="width:100%; border-collapse:collapse; background:white;">
+    <thead>
+        <tr style="background:#e5e7eb;">
+            <th style="padding:10px;">ID</th>
+            <th style="padding:10px;">Admin</th>
+            <th style="padding:10px;">Email</th>
+            <th style="padding:10px;">Reason</th>
+            <th style="padding:10px;">Status</th>
+            <th style="padding:10px;">Date</th>
+            <th style="padding:10px;">Action</th>
+        </tr>
+    </thead>
+
+```
+<tbody>
+
+{% for req in requests_list %}
+    <tr>
+        <td style="padding:10px;">{{ req.id }}</td>
+        <td style="padding:10px;">{{ req.admin_name }}</td>
+        <td style="padding:10px;">{{ req.admin_email }}</td>
+        <td style="padding:10px;">{{ req.reason }}</td>
+        <td style="padding:10px;">{{ req.status }}</td>
+        <td style="padding:10px;">
+            {{ req.created_at.strftime('%Y-%m-%d %H:%M') }}
+        </td>
+
+        <td style="padding:10px;">
+            {% if req.status == "pending" %}
+                <a href="{{ url_for('approve_page', req_id=req.id) }}">
+                    Approve
+                </a>
+            {% endif %}
+        </td>
+    </tr>
+{% endfor %}
+
+</tbody>
+```
+
+</table>
+
+{% endblock %}
