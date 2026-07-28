@@ -1,0 +1,1377 @@
+﻿{% extends 'base.html' %}
+{% block title %} Manage Subjects {% endblock %}
+
+{% block content %}
+
+<style>
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.search-form{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+.search-form input{
+    width:300px;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+.form-box{
+    background:#fff;
+    padding:18px;
+    border-radius:10px;
+    margin-bottom:25px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.compact-form{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:15px;
+}
+
+.compact-form label{
+    display:flex;
+    flex-direction:column;
+    font-size:14px;
+    gap:5px;
+}
+
+.compact-form input,
+.compact-form select{
+    padding:9px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+.form-actions{
+    grid-column:1 / -1;
+}
+
+.subject-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:15px;
+}
+
+.subject-table th,
+.subject-table td{
+    padding:10px;
+    border:1px solid #ddd;
+    vertical-align:top;
+}
+
+.subject-table th{
+    background:#333;
+    color:#fff;
+    font-size:14px;
+}
+
+.parent-exam{
+    background:#e8f4ff;
+    border-left:6px solid #007bff;
+}
+
+.parent-ca{
+    background:#fff4e8;
+    border-left:6px solid #ff9800;
+}
+
+.parent-practice{
+    background:#eefce9;
+    border-left:6px solid #28a745;
+}
+
+.child-row{
+    background:#f8d7da;
+    border-left:8px solid #dc3545;
+}
+
+.edit-panel{
+    display:none;
+    margin-top:12px;
+    padding:15px;
+    background:#fafafa;
+    border:1px solid #ddd;
+    border-radius:8px;
+}
+
+.edit-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));
+    gap:12px;
+}
+
+.edit-grid label{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    font-size:14px;
+}
+
+.edit-grid input,
+.edit-grid select{
+    padding:8px;
+    border:1px solid #ccc;
+    border-radius:6px;
+}
+
+.quick-links{
+    margin-top:15px;
+    padding:12px;
+    background:#f5f5f5;
+    border-radius:8px;
+}
+
+.quick-links .btn{
+    margin-top:5px;
+}
+
+.pagination{
+    margin-top:25px;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.pagination strong{
+    padding:8px 12px;
+    background:#333;
+    color:#fff;
+    border-radius:5px;
+}
+
+.toggle-btn{
+    border:none;
+    background:#333;
+    color:#fff;
+    width:28px;
+    height:28px;
+    border-radius:4px;
+    cursor:pointer;
+    margin-right:6px;
+}
+
+.option-box{
+    margin-top:15px;
+    background:#fff;
+    border:1px solid #ddd;
+    padding:12px;
+    border-radius:8px;
+}
+
+.option-box label{
+    display:block;
+    margin-bottom:12px;
+    font-size:14px;
+}
+
+.option-box input[type="checkbox"]{
+    margin-right:8px;
+    transform:scale(1.1);
+}
+
+.badge-yes{
+    background:#28a745;
+    color:#fff;
+    padding:3px 8px;
+    border-radius:12px;
+    font-size:12px;
+}
+
+.badge-no{
+    background:#999;
+    color:#fff;
+    padding:3px 8px;
+    border-radius:12px;
+    font-size:12px;
+}
+
+.auto-note{
+    font-size:12px;
+    color:#28a745;
+    margin-top:4px;
+    font-weight:bold;
+}
+.series-option{
+    grid-column:1 / -1;
+    background:#f5f8ff;
+    border:1px solid #bcd3ff;
+    padding:12px;
+    border-radius:8px;
+}
+
+.series-option label{
+    display:flex !important;
+    flex-direction:row !important;
+    align-items:center;
+    gap:10px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.series-option input[type="checkbox"]{
+    width:auto;
+    margin:0;
+    transform:scale(1.15);
+}
+
+.series-help{
+    margin-top:8px;
+    font-size:13px;
+    color:#555;
+    line-height:1.5;
+}
+
+.quick-links{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-start;
+    gap:8px;
+}
+
+.quick-links b{
+    margin-bottom:8px;
+}
+
+</style>
+
+<div class="page-header">
+    <h2>Subjects</h2>
+</div>
+
+<!-- SEARCH -->
+<form method="get" class="search-form">
+
+    <input type="text"
+           name="search"
+           value="{{ search }}"
+           placeholder="Search subjects...">
+
+    <button class="btn" type="submit">
+        Search
+    </button>
+
+    <a class="btn"
+       href="{{ url_for('manage_subjects') }}">
+        Reset
+    </a>
+
+</form>
+
+{% if user.role == 'admin' %}
+
+<div class="form-box">
+
+    <form method="post" class="compact-form">
+
+        <input type="hidden"
+               name="action"
+               value="create">
+
+        <label>
+            Name
+            <input name="name" required>
+        </label>
+
+        <label>
+            Session
+            <input name="session"
+                   placeholder="2025/2026"
+                   required>
+        </label>
+
+        <label>
+            Type
+            <select name="result_type"
+                    id="create-result-type"
+                    onchange="handleCreateTypeChange()">
+
+                <option value="exam">Exam</option>
+                <option value="ca">CA</option>
+                <option value="practice">Practice Exam</option>
+
+            </select>
+        </label>
+
+		<label>
+			Term
+
+			<select name="term"
+					id="create-term-select">
+
+				<option value="A">A TERM</option>
+				<option value="B">B TERM</option>
+				<option value="C">C TERM</option>
+
+			</select>
+
+		</label>
+
+        <label id="create-order-wrapper">
+            Order
+            <select name="order">
+                <option value="1ST">1ST</option>
+                <option value="2ND">2ND</option>
+                <option value="3RD">3RD</option>
+            </select>
+        </label>
+
+        <label>
+            Duration - Objective (Minutes)
+            <input type="number"
+                   name="duration"
+                   value="60"
+                   min="1"
+                   required>
+        </label>
+		<label>
+			Duration - Theory (Minutes)
+			<input type="number"
+				   name="theory_duration"
+				   value="{{ theory_default|default(30) }}"
+				   min="1"
+				   required>
+		</label>		
+
+        <label>
+            Group
+            <select name="group_id">
+
+                <option value="">-- none --</option>
+
+                {% for g in groups %}
+                <option value="{{ g.id }}">
+                    {{ g.name }}
+                </option>
+                {% endfor %}
+
+            </select>
+        </label>
+		<label>
+			Class
+			<input type="number"
+				   name="class_level"
+				   min="1"
+				   max="12"
+				   placeholder="e.g. 1"
+				   required>
+		</label>		
+
+		<div class="series-option">
+
+			<label>
+
+				<input type="checkbox"
+					   name="is_series"
+					   id="create-is-series"
+					   value="1"
+					   onchange="handleCreateSeriesChange()">
+
+				Enable Subject Series Grouping
+
+			</label>
+
+			<div class="series-help">
+
+				Subjects with the same name and this option enabled
+				will appear together inside a dropdown group with
+				independent pagination of 10 records.
+
+			</div>
+
+		</div>
+
+        <!-- AUTO PRACTICE REVIEW -->
+        <label>
+            <span>Student Answer Review</span>
+
+            <select name="show_answers_to_students"
+                    id="create-show-answers">
+
+                <option value="0">Hide Answers</option>
+                <option value="1">Show Answers</option>
+
+            </select>
+
+            <small class="auto-note"
+                   id="practice-auto-note"
+                   style="display:none;">
+                Auto enabled for Practice Exam
+            </small>
+
+        </label>
+
+        <div class="form-actions">
+            <button class="btn">
+                Create Subject
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+{% endif %}
+
+<table class="subject-table">
+
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Label</th>
+        <th>Type</th>
+        <th>Term</th>
+        <th>Group</th>
+		<th>Class</th>
+        <th>Duration</th>
+        <th>Hide Scores</th>
+        <th>Student Hidden</th>
+        <th>Show Answers</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for s in subjects %}
+
+    <tr class="
+        {% if s.result_type == 'exam' %}
+            parent-exam
+        {% elif s.result_type == 'practice' %}
+            parent-practice
+        {% else %}
+            parent-ca
+        {% endif %}
+    ">
+
+        <td>{{ s.id }}</td>
+
+        <td>
+
+            {% if s.sub_subjects %}
+            <button type="button"
+                    class="toggle-btn"
+                    id="toggle-btn-{{ s.id }}"
+                    onclick="toggleSubSubjects('{{ s.id }}')">
+                ▼
+            </button>
+            {% endif %}
+
+            <strong>{{ s.name }}</strong>
+
+            {% if s.is_new %}
+                <span style="color:red;"><b>NEW</b></span>
+            {% endif %}
+
+        </td>
+
+        <td>{{ s.label or '-' }}</td>
+
+        <td>
+            {% if s.result_type == 'practice' %}
+                PRACTICE
+            {% else %}
+                {{ s.result_type|upper if s.result_type else '-' }}
+            {% endif %}
+        </td>
+
+        <td>{{ s.term if s.term else '-' }}</td>
+        <td>{{ s.group.name if s.group else '-' }}</td>
+		<td>{{ s.class_level }}</td>
+        <td>{{ s.duration_minutes }} min</td>
+
+        <td>
+            {% if s.hide_scores_for_subadmins %}
+                <span class="badge-yes">Yes</span>
+            {% else %}
+                <span class="badge-no">No</span>
+            {% endif %}
+        </td>
+
+        <td>
+            {% if s.hidden_from_students %}
+                <span class="badge-yes">Yes</span>
+            {% else %}
+                <span class="badge-no">No</span>
+            {% endif %}
+        </td>
+
+        <td>
+            {% if s.show_answers_to_students %}
+                <span class="badge-yes">Yes</span>
+            {% else %}
+                <span class="badge-no">No</span>
+            {% endif %}
+        </td>
+
+        <td>
+
+            <button type="button"
+                    class="btn"
+                    onclick="toggleForm('form-{{ s.id }}')">
+                Edit
+            </button>
+
+            <!-- EDIT PANEL -->
+            <div id="form-{{ s.id }}"
+                 class="edit-panel">
+
+                <form method="post">
+
+                    <input type="hidden"
+                           name="id"
+                           value="{{ s.id }}">
+
+                    <div class="edit-grid">
+
+                        <label>
+                            Name
+                            <input name="name"
+                                   value="{{ s.name }}"
+                                   required>
+                        </label>
+
+                        <label>
+                            Session
+                            <input name="session"
+                                   value="{{ s.label.split()[0] if s.label else '' }}"
+                                   required>
+                        </label>
+
+                        <label>
+                            Type
+                            <select name="result_type"
+                                    onchange="handleEditTypeChange(this, '{{ s.id }}')">
+
+                                <option value="exam"
+                                    {% if s.result_type=='exam' %}selected{% endif %}>
+                                    Exam
+                                </option>
+
+                                <option value="ca"
+                                    {% if s.result_type=='ca' %}selected{% endif %}>
+                                    CA
+                                </option>
+
+                                <option value="practice"
+                                    {% if s.result_type=='practice' %}selected{% endif %}>
+                                    Practice Exam
+                                </option>
+
+                            </select>
+                        </label>
+
+						<label>
+							Term
+
+							<select name="term"
+									id="edit-term-{{ s.id }}">
+
+								{% if s.series_group %}
+
+									{% for i in range(1, 21) %}
+
+									<option value="Series {{ i }}"
+										{% if s.term == 'Series ' ~ i %}selected{% endif %}>
+										Series {{ i }}
+									</option>
+
+									{% endfor %}
+
+								{% else %}
+
+									<option value="A"
+										{% if s.term=='A' %}selected{% endif %}>
+										A TERM
+									</option>
+
+									<option value="B"
+										{% if s.term=='B' %}selected{% endif %}>
+										B TERM
+									</option>
+
+									<option value="C"
+										{% if s.term=='C' %}selected{% endif %}>
+										C TERM
+									</option>
+
+								{% endif %}
+
+							</select>
+
+						</label>
+
+                        <label>
+                            Order
+                            <select name="order">
+
+                                <option value="1ST"
+                                    {% if '1ST' in (s.label or '') %}selected{% endif %}>
+                                    1ST
+                                </option>
+
+                                <option value="2ND"
+                                    {% if '2ND' in (s.label or '') %}selected{% endif %}>
+                                    2ND
+                                </option>
+
+                                <option value="3RD"
+                                    {% if '3RD' in (s.label or '') %}selected{% endif %}>
+                                    3RD
+                                </option>
+
+                            </select>
+                        </label>
+
+                        <label>
+                            Duration - OBJ (Minutes)
+                            <input type="number"
+                                   name="duration"
+                                   value="{{ s.duration_minutes }}">
+                        </label>
+						<label>
+							Duration - Theory (Minutes)
+							<input type="number"
+								   name="theory_duration"
+								   value="{{ s.theory_duration_minutes or 30 }}"
+								   min="1">
+						</label>						
+
+                        <label>
+                            Group
+                            <select name="group_id">
+
+                                <option value="">-- none --</option>
+
+                                {% for g in groups %}
+                                <option value="{{ g.id }}"
+                                    {% if s.group_id==g.id %}selected{% endif %}>
+                                    {{ g.name }}
+                                </option>
+                                {% endfor %}
+
+                            </select>
+                        </label>
+						<label>
+							Class
+							<input type="number"
+								   name="class_level"
+								   value="{{ s.class_level or '' }}"
+								   min="1"
+								   max="12"
+								   required>
+						</label>						
+
+                    </div>
+					
+					<div class="series-option">
+
+						<label>
+
+							<input type="checkbox"
+								   name="is_series"
+								   value="1"
+								   id="edit-is-series-{{ s.id }}"
+								   onchange="handleEditSeriesChange('{{ s.id }}')"
+
+								   {% if s.series_group %}
+								   checked
+								   {% endif %}>
+
+							Enable Subject Series Grouping
+
+						</label>
+
+						<div class="series-help">
+
+							Subjects with the same name and this option enabled
+							will appear together inside a dropdown group with
+							independent pagination of 10 records.
+
+						</div>
+
+					</div>
+
+                    <!-- OPTIONS -->
+                    <div class="option-box">
+
+                        <label>
+                            <input type="checkbox"
+                                   name="hide_scores"
+                                   {% if s.hide_scores_for_subadmins %}checked{% endif %}>
+                            Hide Scores
+                        </label>
+
+                        <label>
+                            <input type="checkbox"
+                                   name="hidden_from_students"
+                                   {% if s.hidden_from_students %}checked{% endif %}>
+                            Hide Subject From Students
+                        </label>
+
+                        <label>
+                            <input type="checkbox"
+                                   id="answers-box-{{ s.id }}"
+                                   name="show_answers_to_students"
+                                   {% if s.show_answers_to_students %}checked{% endif %}>
+                            Show Correct Answers To Students After Exam
+                        </label>
+
+                        <small class="auto-note"
+                               id="edit-note-{{ s.id }}"
+                               {% if s.result_type != 'practice' %}
+                               style="display:none;"
+                               {% endif %}>
+                            Auto enabled for Practice Exam
+                        </small>
+
+                    </div>
+
+					<div class="quick-links">
+
+						<b>Quick Links</b>
+
+						<a class="btn small"
+						   target="_blank"
+						   href="{{ url_for('edit_questions_main', subject_id=s.id) }}">
+							Edit Questions
+						</a>
+
+						<a class="btn small"
+						   target="_blank"
+						   href="{{ url_for('review_questions', subject_id=s.id) }}">
+							Review Questions
+						</a>
+
+						<a class="btn small"
+						   target="_blank"
+						   href="{{ url_for('manage_theory_questions', subject_id=s.id) }}">
+							Theory Questions
+						</a>
+
+					</div>
+
+                    <div style="margin-top:15px;">
+
+                        <button class="btn"
+                                name="action"
+                                value="update">
+                            Save
+                        </button>
+
+                        {% if user.role == 'admin' %}
+                        <button class="btn"
+                                name="action"
+                                value="delete"
+                                onclick="return confirm('Delete?')">
+                            Delete
+                        </button>
+                        {% endif %}
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </td>
+
+    </tr>
+
+    {% if s.sub_subjects %}
+
+    <tr id="subs-{{ s.id }}"
+        style="display:none; background:#fafafa;">
+
+        <td colspan="11">
+
+            <table class="subject-table">
+
+                <tr style="background:#eee;">
+
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Label</th>
+                    <th>Type</th>
+                    <th>Term</th>
+                    <th>Group</th>
+					<th>Class</th>
+                    <th>Duration</th>
+                    <th>Hide</th>
+                    <th>Student Hidden</th>
+                    <th>Show Answers</th>
+                    <th>Actions</th>
+
+                </tr>
+
+                {% for child in s.sub_subjects[:10] %}
+
+                <tr class="child-row">
+
+                    <td>{{ child.id }}</td>
+                    <td>{{ child.name }}</td>
+                    <td>{{ child.label }}</td>
+
+                    <td>
+                        {% if child.result_type == 'practice' %}
+                            PRACTICE
+                        {% else %}
+                            {{ child.result_type|upper }}
+                        {% endif %}
+                    </td>
+
+                    <td>{{ child.term if child.term else '-' }}</td>
+					<td>{{ child.group.name if child.group else '-' }}</td>
+                    <td>{{ child.class_level }}</td>
+                    <td>{{ child.duration_minutes }} min</td>
+
+                    <td>
+                        {% if child.hide_scores_for_subadmins %}
+                            <span class="badge-yes">Yes</span>
+                        {% else %}
+                            <span class="badge-no">No</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if child.hidden_from_students %}
+                            <span class="badge-yes">Yes</span>
+                        {% else %}
+                            <span class="badge-no">No</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if child.show_answers_to_students %}
+                            <span class="badge-yes">Yes</span>
+                        {% else %}
+                            <span class="badge-no">No</span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+
+                        <button type="button"
+                                class="btn"
+                                onclick="toggleForm('form-{{ child.id }}')">
+                            Edit
+                        </button>
+
+                        <!-- CHILD EDIT -->
+                        <div id="form-{{ child.id }}"
+                             class="edit-panel">
+
+                            <form method="post">
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="{{ child.id }}">
+
+                                <div class="edit-grid">
+
+                                    <label>
+                                        Name
+                                        <input name="name"
+                                               value="{{ child.name }}"
+                                               required>
+                                    </label>
+
+                                    <label>
+                                        Session
+                                        <input name="session"
+                                               value="{{ child.label.split()[0] if child.label else '' }}"
+                                               required>
+                                    </label>
+
+                                    <label>
+                                        Type
+                                        <select name="result_type"
+                                                onchange="handleEditTypeChange(this, '{{ child.id }}')">
+
+                                            <option value="exam"
+                                                {% if child.result_type=='exam' %}selected{% endif %}>
+                                                Exam
+                                            </option>
+
+                                            <option value="ca"
+                                                {% if child.result_type=='ca' %}selected{% endif %}>
+                                                CA
+                                            </option>
+
+                                            <option value="practice"
+                                                {% if child.result_type=='practice' %}selected{% endif %}>
+                                                Practice Exam
+                                            </option>
+
+                                        </select>
+                                    </label>
+
+									<label>
+										Term
+
+										<select name="term"
+												id="edit-term-{{ child.id }}">
+
+											{% if child.series_group %}
+
+												{% for i in range(1, 21) %}
+
+												<option value="Series {{ i }}"
+													{% if child.term == 'Series ' ~ i %}selected{% endif %}>
+													Series {{ i }}
+												</option>
+
+												{% endfor %}
+
+											{% else %}
+
+												<option value="A"
+													{% if child.term=='A' %}selected{% endif %}>
+													A TERM
+												</option>
+
+												<option value="B"
+													{% if child.term=='B' %}selected{% endif %}>
+													B TERM
+												</option>
+
+												<option value="C"
+													{% if child.term=='C' %}selected{% endif %}>
+													C TERM
+												</option>
+
+											{% endif %}
+
+										</select>
+
+									</label>
+
+                                    <label>
+                                        Order
+                                        <select name="order">
+
+                                            <option value="1ST"
+                                                {% if '1ST' in (child.label or '') %}selected{% endif %}>
+                                                1ST
+                                            </option>
+
+                                            <option value="2ND"
+                                                {% if '2ND' in (child.label or '') %}selected{% endif %}>
+                                                2ND
+                                            </option>
+
+                                            <option value="3RD"
+                                                {% if '3RD' in (child.label or '') %}selected{% endif %}>
+                                                3RD
+                                            </option>
+
+                                        </select>
+                                    </label>
+
+                                    <label>
+                                        Duration - OBJ (Minutes)
+                                        <input type="number"
+                                               name="duration"
+                                               value="{{ child.duration_minutes }}">
+                                    </label>
+
+									<label>
+										Duration - Theory (Minutes)
+										<input type="number"
+											   name="theory_duration"
+											   value="{{ child.theory_duration_minutes or 30 }}"
+											   min="1">
+									</label>
+
+                                    <label>
+                                        Group
+                                        <select name="group_id">
+
+                                            <option value="">-- none --</option>
+
+                                            {% for g in groups %}
+                                            <option value="{{ g.id }}"
+                                                {% if child.group_id==g.id %}selected{% endif %}>
+                                                {{ g.name }}
+                                            </option>
+                                            {% endfor %}
+
+                                        </select>
+                                    </label>
+									<label>
+										Class
+										<input type="number"
+											   name="class_level"
+											   value="{{ s.class_level or '' }}"
+											   min="1"
+											   max="12"
+											   required>
+									</label>									
+
+                                </div>
+								
+								<div class="series-option">
+
+									<label>
+
+										<input type="checkbox"
+											   name="is_series"
+											   value="1"
+											   id="edit-is-series-{{ child.id }}"
+											   onchange="handleEditSeriesChange('{{ child.id }}')"
+
+											   {% if child.series_group %}
+											   checked
+											   {% endif %}>
+
+										Enable Subject Series Grouping
+
+									</label>
+
+									<div class="series-help">
+
+										Subjects with the same name and this option enabled
+										will appear together inside a dropdown group with
+										independent pagination of 10 records.
+
+									</div>
+
+								</div>
+
+                                <div class="option-box">
+
+                                    <label>
+                                        <input type="checkbox"
+                                               name="hide_scores"
+                                               {% if child.hide_scores_for_subadmins %}checked{% endif %}>
+                                        Hide Scores
+                                    </label>
+
+                                    <label>
+                                        <input type="checkbox"
+                                               name="hidden_from_students"
+                                               {% if child.hidden_from_students %}checked{% endif %}>
+                                        Hide Subject From Students
+                                    </label>
+
+                                    <label>
+                                        <input type="checkbox"
+                                               id="answers-box-{{ child.id }}"
+                                               name="show_answers_to_students"
+                                               {% if child.show_answers_to_students %}checked{% endif %}>
+                                        Show Correct Answers To Students After Exam
+                                    </label>
+
+                                    <small class="auto-note"
+                                           id="edit-note-{{ child.id }}"
+                                           {% if child.result_type != 'practice' %}
+                                           style="display:none;"
+                                           {% endif %}>
+                                        Auto enabled for Practice Exam
+                                    </small>
+
+                                </div>
+
+                                <div class="quick-links">
+
+									<b>Quick Links</b>
+
+									<a class="btn small"
+									   target="_blank"
+									   href="{{ url_for('edit_questions_main', subject_id=child.id) }}">
+										Edit Questions
+									</a>
+
+									<a class="btn small"
+									   target="_blank"
+									   href="{{ url_for('review_questions', subject_id=child.id) }}">
+										Review Questions
+									</a>
+
+									<a class="btn small"
+									   target="_blank"
+									   href="{{ url_for('manage_theory_questions', subject_id=child.id) }}">
+										Theory Questions
+									</a>
+
+								</div>
+
+                                <div style="margin-top:15px;">
+
+                                    <button class="btn"
+                                            name="action"
+                                            value="update">
+                                        Save
+                                    </button>
+
+                                    {% if user.role == 'admin' %}
+                                    <button class="btn"
+                                            name="action"
+                                            value="delete"
+                                            onclick="return confirm('Delete?')">
+                                        Delete
+                                    </button>
+                                    {% endif %}
+
+                                </div>
+
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </table>
+			
+			{% if s.sub_pages > 1 %}
+
+			<div class="pagination" style="margin-top:15px;">
+
+				{% for sp in range(1, s.sub_pages + 1) %}
+
+					{% if sp == s.sub_page %}
+
+						<strong>{{ sp }}</strong>
+
+					{% else %}
+
+						<a class="btn"
+						   href="{{ url_for(
+								'manage_subjects',
+								page=pagination.page,
+								search=search,
+								**{'subpage_' ~ s.id: sp}
+						   ) }}">
+							{{ sp }}
+						</a>
+
+					{% endif %}
+
+				{% endfor %}
+
+			</div>
+
+			{% endif %}
+
+        </td>
+
+    </tr>
+
+    {% endif %}
+
+    {% endfor %}
+
+</table>
+
+<!-- PAGINATION -->
+{% if pagination and pagination.pages > 1 %}
+
+<div class="pagination">
+
+    {% if pagination.has_prev %}
+    <a class="btn"
+       href="{{ url_for('manage_subjects',
+                        page=pagination.prev_num,
+                        search=search) }}">
+        Previous
+    </a>
+    {% endif %}
+
+    {% for p in pagination.iter_pages() %}
+
+        {% if p %}
+
+            {% if p == pagination.page %}
+                <strong>{{ p }}</strong>
+            {% else %}
+                <a class="btn"
+                   href="{{ url_for('manage_subjects',
+                                    page=p,
+                                    search=search) }}">
+                    {{ p }}
+                </a>
+            {% endif %}
+
+        {% else %}
+            <span>...</span>
+        {% endif %}
+
+    {% endfor %}
+
+    {% if pagination.has_next %}
+    <a class="btn"
+       href="{{ url_for('manage_subjects',
+                        page=pagination.next_num,
+                        search=search) }}">
+        Next
+    </a>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+<script>
+
+function toggleForm(id){
+
+    const el = document.getElementById(id);
+
+    if(el.style.display === 'block'){
+        el.style.display = 'none';
+    } else {
+        el.style.display = 'block';
+    }
+
+}
+
+function toggleSubSubjects(id){
+
+    const row = document.getElementById('subs-' + id);
+    const btn = document.getElementById('toggle-btn-' + id);
+
+    if(row.style.display === 'table-row'){
+
+        row.style.display = 'none';
+        btn.innerHTML = '▼';
+
+    } else {
+
+        row.style.display = 'table-row';
+        btn.innerHTML = '▲';
+
+    }
+
+}
+
+function handleCreateTypeChange(){
+
+    const typeSelect = document.getElementById('create-result-type');
+    const answerSelect = document.getElementById('create-show-answers');
+    const note = document.getElementById('practice-auto-note');
+
+    if(typeSelect.value === 'practice'){
+
+        answerSelect.value = '1';
+        note.style.display = 'block';
+
+    } else {
+
+        note.style.display = 'none';
+
+    }
+
+}
+
+function handleEditTypeChange(selectEl, id){
+
+    const answerBox = document.getElementById('answers-box-' + id);
+    const note = document.getElementById('edit-note-' + id);
+
+    if(selectEl.value === 'practice'){
+
+        answerBox.checked = true;
+        note.style.display = 'block';
+
+    } else {
+
+        note.style.display = 'none';
+
+    }
+
+}
+
+function buildSeriesOptions(selectEl){
+
+    let html = '';
+
+    for(let i = 1; i <= 20; i++){
+
+        html += `
+            <option value="Series ${i}">
+                Series ${i}
+            </option>
+        `;
+
+    }
+
+    selectEl.innerHTML = html;
+
+}
+
+function buildNormalTermOptions(selectEl){
+
+    selectEl.innerHTML = `
+        <option value="A">A TERM</option>
+        <option value="B">B TERM</option>
+        <option value="C">C TERM</option>
+    `;
+
+}
+
+function handleCreateSeriesChange(){
+
+    const box = document.getElementById('create-is-series');
+    const termSelect = document.getElementById('create-term-select');
+
+    if(box.checked){
+
+        buildSeriesOptions(termSelect);
+
+    } else {
+
+        buildNormalTermOptions(termSelect);
+
+    }
+
+}
+
+function handleEditSeriesChange(id){
+
+    const box = document.getElementById(
+        'edit-is-series-' + id
+    );
+
+    const termSelect = document.getElementById(
+        'edit-term-' + id
+    );
+
+    if(box.checked){
+
+        buildSeriesOptions(termSelect);
+
+    } else {
+
+        buildNormalTermOptions(termSelect);
+
+    }
+
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+
+    handleCreateTypeChange();
+
+    handleCreateSeriesChange();
+
+});
+
+</script>
+
+{% endblock %}

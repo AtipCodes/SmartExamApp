@@ -1,0 +1,187 @@
+
+{% if settings.report_cards_published %}
+<div class="alert alert-success">
+Report Cards Published
+</div>
+{% else %}
+<div class="alert alert-warning">
+Report Cards Not Yet Published
+</div>
+{% endif %}
+
+{% if settings.report_cards_published %}
+<a href="{{ url_for('unpublish_report_cards') }}">
+    Unpublish
+</a>
+{% else %}
+<a href="{{ url_for('publish_report_cards') }}">
+    Publish Report Cards
+</a>
+{% endif %}
+
+<h2>Report Card Dashboard</h2>
+
+<table border="1">
+
+<tr>
+    <th>Teacher Completed</th>
+    <th>Principal Completed</th>
+    <th>Fully Completed</th> 
+	<th>Total Reports</th>
+</tr>
+
+<tr>
+    <td>{{ teacher_done }}</td>
+    <td>{{ principal_done }}</td>
+    <td>{{ fully_completed }}</td>
+	<td>{{ total_reports }}</td>
+</tr>
+
+</table>
+
+<br>
+
+<table border="1">
+
+<tr>
+    <th>Teacher Locked</th>
+    <th>Principal Locked</th>
+</tr>
+
+<tr>
+    <td>{{ teacher_locked }}</td>
+    <td>{{ principal_locked }}</td>
+</tr>
+
+</table>
+
+<table border="1">
+
+<tr>
+
+<th>Student</th>
+
+<th>Class</th>
+
+<th>Teacher</th>
+
+<th>Principal</th>
+
+<th>Teacher Status</th>
+
+<th>Principal Status</th>
+
+<th>Teacher Lock</th>
+
+<th>Principal Lock</th>
+
+<th>Last Updated</th>
+
+<th>Actions</th>
+
+</tr>
+
+{% for r in remarks %}
+
+<tr>
+
+<td>
+
+{{ r.student.first_name }}
+{{ r.student.last_name }}
+
+</td>
+
+<td>
+
+{{ r.academic_class.name if r.academic_class else "" }}
+
+</td>
+
+<td>
+
+{{ r.teacher_name or "-" }}
+
+</td>
+
+<td>
+
+{{ r.principal_name or "-" }}
+
+</td>
+
+<td>
+
+{% if r.teacher_completed_at %}
+✅
+{% else %}
+❌
+{% endif %}
+
+</td>
+
+<td>
+
+{% if r.principal_completed_at %}
+✅
+{% else %}
+❌
+{% endif %}
+
+</td>
+
+<td>
+
+{% if r.teacher_locked %}
+🔒
+{% else %}
+🔓
+{% endif %}
+
+</td>
+
+<td>
+
+{% if r.principal_locked %}
+🔒
+{% else %}
+🔓
+{% endif %}
+
+</td>
+
+<td>
+
+{{ r.teacher_updated_at or r.principal_updated_at or "-" }}
+
+</td>
+
+<td>
+
+<a href="{{ url_for(
+    'unlock_teacher_report',
+    remark_id=r.id
+) }}">
+
+Unlock Teacher
+
+</a>
+
+|
+
+<a href="{{ url_for(
+    'unlock_principal_report',
+    remark_id=r.id
+) }}">
+
+Unlock Principal
+
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>

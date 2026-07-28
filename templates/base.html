@@ -1,0 +1,767 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ title or 'Exam App' }}</title>
+
+<style>
+body {
+    font-family: system-ui, Arial, sans-serif;
+    margin:0;
+    background:#f9fafb;
+}
+
+/* Sidebar */
+.sidebar {
+    width:260px;
+    background:#007BFF;
+    color:white;
+    height:100vh;
+    position:fixed;
+    top:0;
+    left:0;
+    transition:transform .3s ease-in-out;
+    z-index:1000;
+    overflow-y:auto;
+}
+
+.sidebar.closed {
+    transform:translateX(-260px);
+}
+
+.sidebar.open {
+    transform:translateX(0);
+}
+
+.main {
+    margin-left:260px;
+    transition:margin-left .3s ease-in-out;
+}
+
+@media (max-width:768px){
+
+    .sidebar {
+        transform:translateX(-260px);
+    }
+
+    .sidebar.open {
+        transform:translateX(0);
+    }
+
+    .main {
+        margin-left:0;
+    }
+
+    .main.shifted {
+        margin-left:260px;
+    }
+
+}
+
+.sidebar h2{
+    font-size:1.25rem;
+    padding:16px;
+    font-weight:bold;
+    border-bottom:1px solid rgba(255,255,255,0.2);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    color:white;
+}
+
+.sidebar nav a,
+.dropbtn{
+    display:block;
+    padding:10px 16px;
+    border-radius:6px;
+    margin:4px 8px;
+    text-decoration:none;
+    color:white;
+    background:none;
+    border:none;
+    text-align:left;
+    width:calc(100% - 16px);
+    cursor:pointer;
+    font-size:1rem;
+    box-sizing:border-box;
+}
+
+.sidebar nav a:hover,
+.dropbtn:hover{
+    background:#0056b3;
+}
+
+.dropdown{
+    position:relative;
+}
+
+.dropdown-content{
+    display:none;
+    background:#0056b3;
+    margin:0 8px;
+    border-radius:6px;
+    overflow:hidden;
+}
+
+.dropdown-content a{
+    padding:10px 16px;
+    display:block;
+    color:white;
+    text-decoration:none;
+}
+
+.dropdown-content a:hover{
+    background:#004494;
+}
+
+.dropdown.open .dropdown-content{
+    display:block;
+}
+
+.sidebar .footer{
+    padding:12px;
+    border-top:1px solid rgba(255,255,255,0.2);
+    margin-top:20px;
+}
+
+.sidebar .footer a{
+    display:block;
+    padding:10px;
+    border-radius:6px;
+    color:white;
+    text-decoration:none;
+}
+
+.sidebar .footer a:hover{
+    background:#0056b3;
+}
+
+header{
+    background:white;
+    padding:12px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 1px 3px rgba(0,0,0,0.1);
+    position:sticky;
+    top:0;
+    z-index:40;
+}
+
+header button{
+    font-size:1.5rem;
+    background:none;
+    border:none;
+    cursor:pointer;
+}
+
+.content{
+    padding:20px;
+}
+
+/* FLASH */
+.flash-container{
+    margin-bottom:15px;
+}
+
+.flash{
+    padding:12px 14px;
+    margin-bottom:10px;
+    border-radius:6px;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    animation:fadeIn .3s ease;
+    transition:opacity .4s ease;
+}
+
+.flash.success,
+.flash.ok{
+    background:#28a745;
+}
+
+.flash.error{
+    background:#dc3545;
+}
+
+.flash.warning{
+    background:#ffc107;
+    color:#000;
+}
+
+.flash.info{
+    background:#007bff;
+}
+
+.flash button{
+    background:none;
+    border:none;
+    color:inherit;
+    cursor:pointer;
+}
+
+@keyframes fadeIn{
+    from{
+        opacity:0;
+        transform:translateY(-5px);
+    }
+
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+table{
+    max-width:100%;
+}
+
+input,
+select,
+button,
+textarea{
+
+    max-width:100%;
+
+    box-sizing:border-box;
+}
+
+@media (max-width:768px){
+
+    .content{
+
+        padding:12px;
+    }
+
+    table{
+
+        font-size:12px;
+    }
+
+    input,
+    select,
+    button{
+
+        width:100%;
+    }
+
+}
+</style>
+<link rel="stylesheet" 
+href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+
+</head>
+
+<body>
+
+
+<aside class="sidebar closed">
+
+<h2>
+    Exam System 
+    <button onclick="document.getElementById('menuToggle').click()">×</button>
+</h2>
+	<hr>
+{% if user %}	
+<p style="margin-left:20px;">  
+{{user.first_name}}  {{user.last_name}} </p>
+{% endif %}
+
+<nav>
+
+{% if user %}
+
+    {# ================= LICENSING ================= #}
+    {% if user.role == 'licensing' %}
+
+        <a href="{{ url_for('license_dashboard') }}">
+            Licensing Dashboard
+        </a>
+
+        <a href="{{ url_for('licenser_settings') }}">
+            Settings
+        </a>
+		
+		<a href="{{ url_for('email_diagnostics') }}">
+			<i class="fas fa-envelope"></i>
+			Test Email
+		</a>		
+
+    {# ================= ADMIN ================= #}
+    {% elif user.role in ['global_admin','admin'] %}
+
+        <a href="{{ url_for('dashboard') }}">
+            📊 Admin Dashboard
+        </a>
+	{% if user.role == "global_admin" and user.is_global %}
+		<a href="{{ url_for('approval_center') }}">
+        <i class="fas fa-user-check"></i>
+        Approvals
+        </a>
+	{% endif %}
+	
+	{% if user and user.is_institution_admin %}
+    <a href="{{ url_for('institution_approval_center') }}">
+        <i class="fas fa-user-check"></i>
+        Approval Center
+    </a>	
+	{% endif %}		
+		<a href="{{ url_for('classes') }}">
+			Classes
+		</a>		
+
+        <a href="{{ url_for('manage_users') }}">
+            🧑 Users
+        </a>
+
+        <a href="{{ url_for('manage_groups') }}">
+            👥 Groups
+        </a>
+
+        <a href="{{ url_for('manage_subjects') }}">
+            📚 Subjects
+        </a>
+
+        <a href="{{ url_for('upload_questions') }}">
+            ⬆️ Upload Questions
+        </a>
+
+		<a href="{{ url_for('retake_permissions') }}">
+			🔄 Retake Permissions
+		</a>
+
+        <!-- RESULTS DROPDOWN -->
+        <div class="dropdown" id="exportDropdown">
+
+            <button class="dropbtn">
+                📊 Results & Reports ▾
+            </button>
+
+            <div class="dropdown-content">
+
+                <a href="{{ url_for('export_scores') }}"
+                   class="ajax-link">
+
+                    📊 Objective Results
+
+                </a>
+
+                <a href="{{ url_for('theory_submissions') }}"
+                   class="ajax-link">
+
+                    📄 Theory Submissions
+
+                </a>
+
+                <a href="{{ url_for('report_card') }}"
+                   class="ajax-link">
+
+                    📝 Generate Report Cards
+
+                </a>
+				
+				<a href="{{ url_for('send_report_cards') }}">
+					📤 Send Report Cards
+				</a>
+
+                <!-- FIXED -->
+                <a href="{{ url_for('recycle_bin') }}"
+                   class="ajax-link">
+
+                    🗑 Recycle Bin
+
+                </a>
+
+            </div>
+
+        </div>
+
+		<div class="dropdown" id="settingsDropdown">
+
+			<button class="dropbtn">
+				⚙️ Settings ▾
+			</button>
+
+			<div class="dropdown-content">
+
+				<a href="{{ url_for('admin_settings') }}">
+					⚙️ App Settings
+				</a>
+
+				<a href="{{ url_for('school_settings') }}">
+					🏫 School Settings
+				</a>
+				
+				<a href="{{ url_for('smtp_test_page') }}">
+					🧪 SMTP Connection Test
+				</a>
+				
+				<a href="{{ url_for('email_logs') }}">
+					📧 Email Logs
+				</a>				
+
+				<a href="{{ url_for('scheduler_status') }}">
+					⚙️ Scheduler Status
+				</a>
+
+				<a href="{{ url_for('email_failures') }}">
+					📧 Email Failures
+				</a>
+				
+				<a href="{{ url_for('email_diagnostics') }}">
+					<i class="fas fa-envelope"></i>
+					Test Email
+				</a>				
+
+			</div>
+
+		</div>
+
+        <!-- LICENSE DROPDOWN -->
+        <div class="dropdown" id="licenseDropdown">
+
+            <button class="dropbtn">
+                🔐 Licenses ▾
+            </button>
+
+            <div class="dropdown-content">
+
+                <a href="{{ url_for('license_dashboard') }}">
+                    License Dashboard
+                </a>
+
+                <a href="{{ url_for('admin_request_license') }}">
+                    License Request
+                </a>
+
+            </div>
+
+        </div>
+
+        <a href="{{ url_for('admin_chat_dashboard') }}">
+            💬 Open Student Chats
+        </a>
+
+    {# ================= SUBADMIN ================= #}
+    {% elif user.role == 'subadmin' %}
+
+        <a href="{{ url_for('dashboard') }}">
+            📊 Sub-admin Dashboard
+        </a>
+
+        <a href="{{ url_for('manage_subjects') }}">
+            📚 Subjects
+        </a>
+
+        <a href="{{ url_for('upload_questions') }}">
+            ⬆️ Upload Questions
+        </a>
+
+    {% endif %}
+
+{% endif %}
+
+</nav>
+
+<div class="footer">
+
+{% if not user %}
+
+    <a href="{{ url_for('login') }}">
+        🔑 Login
+    </a>
+
+{% else %}
+<p>Username: {{user.username}} <br> Role: {{user.role}}  
+<br>Is Global: {{user.is_global}} <br>
+Institution: {{user.institution_id, user.institution}}
+<br>
+Is Institution Admin: {{user.is_institution_admin}}
+</p>
+
+    <a href="{{ url_for('logout') }}"
+       style="background:#dc2626;">
+
+        🚪 Logout
+
+    </a>
+
+{% endif %}
+
+</div>
+
+</aside>
+
+<div class="main">
+
+<header>
+
+<button id="menuToggle">☰</button>
+
+<h1>{{ title or "Smart Exam App" }}</h1>
+
+</header>
+
+<div class="content" id="mainContent">
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+
+{% if messages %}
+
+<div class="flash-container">
+
+{% for category, message in messages %}
+
+<div class="flash {{ category }}">
+
+    <span>{{ message }}</span>
+
+    <button onclick="this.parentElement.remove()">
+        ✖
+    </button>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% endif %}
+
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+</div>
+
+</div>
+
+<script>
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+    // =========================================
+    // FLASH AUTO CLOSE
+    // =========================================
+    function initFlash(){
+
+        setTimeout(() => {
+
+            document
+            .querySelectorAll(".flash")
+            .forEach(f => {
+
+                f.style.opacity = "0";
+
+                setTimeout(() => {
+
+                    f.remove();
+
+                }, 400);
+
+            });
+
+        }, 10000);
+
+    }
+
+    initFlash();
+
+    // =========================================
+    // SIDEBAR TOGGLE
+    // =========================================
+    const sidebar = document.querySelector(
+        ".sidebar"
+    );
+
+    const main = document.querySelector(
+        ".main"
+    );
+
+    const toggleBtn = document.getElementById(
+        "menuToggle"
+    );
+
+    if(window.innerWidth > 768){
+
+        sidebar.classList.add("open");
+        sidebar.classList.remove("closed");
+
+        toggleBtn.style.display = "none";
+
+    }
+
+    toggleBtn.addEventListener(
+        "click",
+        function () {
+
+            sidebar.classList.toggle("open");
+            sidebar.classList.toggle("closed");
+
+            if(window.innerWidth <= 768){
+
+                main.classList.toggle(
+                    "shifted"
+                );
+
+            }
+
+        }
+    );
+
+    // =========================================
+    // DROPDOWNS
+    // =========================================
+    function initDropdowns(){
+
+        document
+        .querySelectorAll(".dropdown")
+        .forEach(dropdown => {
+
+            const btn = dropdown.querySelector(
+                ".dropbtn"
+            );
+
+            if(!btn) return;
+
+            // prevent duplicate listeners
+            btn.onclick = function(e){
+
+                e.stopPropagation();
+
+                // close other dropdowns
+                document
+                .querySelectorAll(".dropdown")
+                .forEach(d => {
+
+                    if(d !== dropdown){
+
+                        d.classList.remove(
+                            "open"
+                        );
+
+                    }
+
+                });
+
+                dropdown.classList.toggle(
+                    "open"
+                );
+
+            };
+
+        });
+
+    }
+
+    initDropdowns();
+
+    // =========================================
+    // CLOSE DROPDOWNS ON OUTSIDE CLICK
+    // =========================================
+    document.addEventListener(
+        "click",
+        function(){
+
+            document
+            .querySelectorAll(".dropdown")
+            .forEach(d => {
+
+                d.classList.remove("open");
+
+            });
+
+        }
+    );
+
+    // =========================================
+    // AJAX NAVIGATION
+    // =========================================
+    function initAjaxLinks(){
+
+        document
+        .querySelectorAll('.ajax-link')
+        .forEach(link => {
+
+            // prevent duplicate listeners
+            link.onclick = function(e){
+
+                e.preventDefault();
+
+                const url = this.href;
+
+                fetch(url)
+
+                .then(response => response.text())
+
+                .then(html => {
+
+                    const parser = new DOMParser();
+
+                    const doc = parser.parseFromString(
+                        html,
+                        'text/html'
+                    );
+
+                    const newContent =
+                        doc.querySelector(
+                            '#mainContent'
+                        );
+
+                    if(newContent){
+
+                        document.querySelector(
+                            '#mainContent'
+                        ).innerHTML =
+                            newContent.innerHTML;
+
+                    }
+
+                    // update URL
+                    history.pushState(
+                        null,
+                        '',
+                        url
+                    );
+
+                    // reinitialize features
+                    initFlash();
+                    initDropdowns();
+                    initAjaxLinks();
+
+                })
+
+                .catch(error => {
+
+                    console.error(
+                        'Error loading page:',
+                        error
+                    );
+
+                });
+
+            };
+
+        });
+
+    }
+
+    initAjaxLinks();
+
+    // =========================================
+    // BROWSER BACK/FORWARD
+    // =========================================
+    window.addEventListener(
+        'popstate',
+        () => location.reload()
+    );
+
+});
+
+</script>
+
+</body>
+</html>

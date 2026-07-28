@@ -1,0 +1,54 @@
+﻿{% extends 'base.html' %}
+{% block title %} Reset Request {% endblock %}
+{% block content %}
+
+        <h2>Reset Password</h2>
+        <form method="post" id="resetForm">
+            <input type="email" name="email" id="emailInput" placeholder="Enter your email" required><br><br>
+
+            <!-- License key field (conditionally shown) -->
+            <div id="licenseField" style="display: {{ 'block' if need_license else 'none' }};">
+                <input type="text" name="license_key" id="licenseKeyInput"
+                       placeholder="Enter license key (required)" {% if need_license %}required{% endif %}>
+                <br><br>
+            </div>
+
+            <button type="submit">Send Reset Link</button>
+        </form>
+
+        <script>
+            const emailInput = document.getElementById("emailInput");
+            const licenseField = document.getElementById("licenseField");
+            const licenseKeyInput = document.getElementById("licenseKeyInput");
+
+            const licenserEmail = "{{ licenser_email|lower }}";
+            const needLicense = {{ 'true' if need_license else 'false' }};  // backend flag
+
+            emailInput.addEventListener("input", function() {
+                const enteredEmail = emailInput.value.trim().toLowerCase();
+
+                if (enteredEmail === licenserEmail || !needLicense) {
+                    // Case 1: licenser email OR first reset (no admin email yet) → no license field
+                    licenseField.style.display = "none";
+                    licenseKeyInput.removeAttribute("required");
+                } else {
+                    // Case 2: admin already has email → license required
+                    licenseField.style.display = "block";
+                    licenseKeyInput.setAttribute("required", "required");
+                }
+            });
+        </script>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <ul>
+              {% for category, message in messages %}
+                <li style="color: {% if category == 'danger' %}red{% else %}green{% endif %}">
+                    {{ message }}
+                </li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+
+{% endblock %}

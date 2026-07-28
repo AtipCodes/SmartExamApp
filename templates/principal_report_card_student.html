@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<title>
+
+Principal Report Entry
+
+</title>
+
+</head>
+
+<body>
+
+<h2>
+
+Principal Report Entry
+
+</h2>
+
+<p>
+
+<strong>
+
+{{ student.first_name }}
+{{ student.last_name }}
+
+</strong>
+
+</p>
+
+<p>
+
+Admission No:
+{{ student.username }}
+
+</p>
+
+<p>
+
+Class:
+
+{{ student.academic_class.name if student.academic_class else "" }}
+
+</p>
+
+<hr>
+
+<form method="POST">
+{% if locked %}
+<p style="color:red;font-weight:bold;">
+This report has been submitted and is locked.
+</p>
+{% endif %}
+
+<h3>
+
+Principal's Comment
+
+</h3>
+
+<textarea
+    name="principal_comment"
+    rows="8"
+    cols="60"
+	{% if locked %}disabled{% endif %}
+>{{ remark.principal_comment or "" }}</textarea>
+
+<br><br>
+{% if not locked %}
+<button type="submit" name="action" value="save">
+    Save
+</button>
+<button type="submit" name="action" value="next">
+    Save & Next →
+</button>
+{% endif %}
+
+<a href="{{ url_for(
+    'principal_report_card',
+    token=token,
+    class_id=student.academic_class_id
+) }}">
+
+Cancel
+
+</a>
+
+</form>
+
+<hr>
+
+{% if previous_student %}
+<a href="{{ url_for(
+    'principal_report_card_student',
+    token=token,
+    student_id=previous_student.id
+) }}">
+← Previous Student
+</a>
+{% endif %}
+
+{% if previous_student and next_student %}
+|
+{% endif %}
+
+{% if next_student %}
+<a href="{{ url_for(
+    'principal_report_card_student',
+    token=token,
+    student_id=next_student.id
+) }}">
+Next Student →
+</a>
+{% endif %}
+
+</body>
+
+</html>

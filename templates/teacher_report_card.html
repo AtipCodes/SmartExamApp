@@ -1,0 +1,91 @@
+<h2>Teacher Report Card Entry</h2>
+<p>
+    Welcome,
+    <strong>{{ teacher_name }}</strong>
+</p>
+<p>
+    {{ settings.term }}
+    Term
+
+    |
+
+    {{ settings.session }}
+</p>
+<form method="GET">
+
+    <input
+        type="hidden"
+        name="token"
+        value="{{ token }}"
+    >
+    <label>
+        Select Class
+    </label>
+    <select
+        name="class_id"
+        onchange="this.form.submit()"
+    >
+        <option value="">
+            -- Select Class --
+        </option>
+        {% for c in classes %}
+        <option
+            value="{{ c.id }}"
+            {% if selected_class==c.id %}
+            selected
+            {% endif %}
+        >
+            {{ c.name }}
+        </option>
+        {% endfor %}
+    </select>
+</form>
+{% if students %}
+<h3>
+Students
+</h3>
+<table border="1">
+<tr>
+    <th>Name</th>
+    <th>Admission No</th>
+    <th>Action</th>
+	<th>Status</th>
+</tr>
+{% for s in students %}
+<tr>
+    <td>
+        {{ s.first_name }}
+        {{ s.last_name }}
+
+    </td>
+    <td>
+        {{ s.username }}
+    </td>
+    <td>
+	<a href="{{ url_for(
+		'teacher_report_card_student',
+		token=token,
+		student_id=s.id
+	) }}">
+		Open Report
+	</a>
+    </td>
+	<td>
+	{% set st = status_map.get(s.id) %}
+	{% if not st %}
+	⚪ Not Started
+	{% elif st.teacher and st.principal %}
+	✅ Completed
+	{% elif st.teacher %}
+	🟢 Teacher Done
+	{% elif st.principal %}
+	🔵 Principal Done
+	{% else %}
+	🟡 In Progress
+	{% endif %}
+	</td>	
+	
+</tr>
+{% endfor %}
+</table>
+{% endif %}

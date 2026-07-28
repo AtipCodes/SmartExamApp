@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Report Card</title>
+<style>
+body { font-family: Arial, sans-serif; }
+.logo { max-width: 150px; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border: 1px solid black; padding: 5px; text-align: center; }
+</style>
+</head>
+<body>
+{% if logo %}
+<img src="{{ logo }}" class="logo">
+{% endif %}
+
+{% if background %}
+<style>
+body { background-image: url("{{ background }}"); background-size: cover; }
+</style>
+{% endif %}
+
+<h2>{{ settings.name }}</h2>
+<p>{{ settings.address }} | {{ settings.term }} - {{ settings.session }}</p>
+<p><b>Student:</b> {{ student.first_name }} {{ student.last_name }} ({{ student.username }})</p>
+
+<table>
+<tr>
+<th>Subject</th>
+<th>Teacher</th>
+<th>Objective (OBJ)</th>
+<th>Theory</th>
+<th>Total</th>
+<th>Grade</th>
+<th>Remark</th>
+</tr>
+
+{% for r in results %}
+<tr>
+<td>{{ r.subject.name }}</td>
+<td>{{ r.teacher_name or "" }}</td>
+<td>{{ r.score }}</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+{% endfor %}
+</table>
+
+<p><b>Class Teacher's Remarks:</b> ___________________________</p>
+<p><b>Principal's Remarks:</b> ___________________________</p>
+<p><b>Principal's Signature:</b> ___________________________</p>
+<p><b>Next Resumption:</b> ___________________________</p>
+</body>
+</html>

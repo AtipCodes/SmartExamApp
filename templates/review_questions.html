@@ -1,0 +1,454 @@
+﻿{% extends 'base.html' %}
+{% block title %}Review Questions{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+
+    <h2>📋 Review Questions</h2>
+
+    <p>
+        {{ subject.name }} —
+        {{ questions|length }} objective question(s)
+    </p>
+
+</div>
+
+<form method="POST">
+
+<div class="review-toolbar">
+
+    <label class="select-all-box">
+
+        <input type="checkbox" id="selectAll">
+
+        Select All
+
+    </label>
+
+    <button
+        type="submit"
+        class="btn btn-danger"
+        onclick="return confirm('Delete selected questions?');">
+
+        🗑 Delete Selected Questions
+
+    </button>
+
+</div>
+
+
+{% if questions %}
+
+{% for q in questions %}
+
+<div class="question-card">
+
+    <div class="question-top">
+
+        <div>
+
+            <input
+                type="checkbox"
+                name="del_ids"
+                value="{{ q.id }}"
+                class="question-check">
+
+            <span class="question-number">
+
+                Question {{ loop.index }}
+
+            </span>
+
+        </div>
+
+        <span class="question-id">
+
+            ID #{{ q.id }}
+
+        </span>
+
+    </div>
+
+    <div class="question-body">
+
+        <div class="image-column">
+
+            {% if q.image %}
+
+                <a href="{{ url_for(
+                    'static',
+                    filename='uploads/' ~ q.image
+                ) }}" target="_blank">
+
+                    <img
+                        src="{{ url_for(
+                            'static',
+                            filename='uploads/' ~ q.image
+                        ) }}"
+                        class="question-image">
+
+                </a>
+
+            {% else %}
+
+                <div class="no-image">
+
+                    No Image
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        <div class="content-column">
+
+            <div class="prompt">
+
+                {{ q.prompt }}
+
+            </div>
+
+            {% if q.choices_json %}
+
+            <div class="choices">
+
+                {% for c in q.choices_json|fromjson %}
+
+                    <div class="choice">
+
+                        {{ loop.index | string | replace("1","A")
+                                         | replace("2","B")
+                                         | replace("3","C")
+                                         | replace("4","D") }}.
+
+                        {{ c }}
+
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+            <div class="answer-box">
+
+                ✅ Correct Answer:
+
+                <strong>{{ q.answer }}</strong>
+
+            </div>
+
+            <div class="card-actions">
+
+                <a
+                    href="{{ url_for(
+                        'edit_single_question',
+                        subject_id=subject.id,
+                        qid=q.id
+                    ) }}"
+                    class="btn">
+
+                    ✏ Edit
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+{% else %}
+
+<div class="empty-box">
+
+    No questions found.
+
+</div>
+
+{% endif %}
+
+</form>
+
+<br>
+
+<a
+    href="{{ url_for(
+        'edit_questions_main',
+        subject_id=subject.id
+    ) }}"
+    class="btn">
+
+    ← Back to Editor
+
+</a>
+
+<script>
+
+document.getElementById("selectAll").addEventListener("change",function(){
+
+    document.querySelectorAll(".question-check")
+        .forEach(cb=>cb.checked=this.checked);
+
+});
+
+</script>
+
+
+
+<style>
+.page-header{
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+    color:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:25px;
+}
+
+.review-toolbar{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:20px;
+
+    flex-wrap:wrap;
+
+    gap:15px;
+
+}
+
+.select-all-box{
+
+    font-weight:600;
+
+}
+
+.question-card{
+
+    background:white;
+
+    border-radius:12px;
+
+    padding:20px;
+
+    margin-bottom:20px;
+
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+
+    border:1px solid #e5e7eb;
+
+}
+
+.question-top{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:18px;
+
+    flex-wrap:wrap;
+
+}
+
+.question-number{
+
+    font-weight:bold;
+
+    color:#2563eb;
+
+    margin-left:8px;
+
+}
+
+.question-id{
+
+    background:#eef2ff;
+
+    padding:5px 12px;
+
+    border-radius:20px;
+
+    color:#4338ca;
+
+    font-size:13px;
+
+}
+
+.question-body{
+
+    display:grid;
+
+    grid-template-columns:170px 1fr;
+
+    gap:20px;
+
+}
+
+.image-column{
+
+    text-align:center;
+
+}
+
+.question-image{
+
+    width:150px;
+
+    height:150px;
+
+    object-fit:contain;
+
+    border:1px solid #ddd;
+
+    border-radius:10px;
+
+    transition:.2s;
+
+}
+
+.question-image:hover{
+
+    transform:scale(1.05);
+
+}
+
+.no-image{
+
+    width:150px;
+
+    height:150px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border:2px dashed #ddd;
+
+    border-radius:10px;
+
+    color:#999;
+
+}
+
+.prompt{
+
+    font-size:18px;
+
+    font-weight:600;
+
+    margin-bottom:15px;
+
+}
+
+.choices{
+
+    display:grid;
+
+    grid-template-columns:repeat(2,1fr);
+
+    gap:10px;
+
+    margin-bottom:20px;
+
+}
+
+.choice{
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+    padding:10px;
+
+    border-radius:8px;
+
+}
+
+.answer-box{
+
+    background:#ecfdf5;
+
+    border-left:5px solid #10b981;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    margin-bottom:20px;
+
+    color:#065f46;
+
+}
+
+.card-actions{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+.empty-box{
+
+    background:#fafafa;
+
+    border:1px dashed #ccc;
+
+    padding:30px;
+
+    text-align:center;
+
+    border-radius:10px;
+
+}
+
+@media(max-width:900px){
+
+.question-body{
+
+grid-template-columns:1fr;
+
+}
+
+.image-column{
+
+text-align:left;
+
+}
+
+.question-image{
+
+width:100%;
+
+max-width:220px;
+
+height:auto;
+
+}
+
+.choices{
+
+grid-template-columns:1fr;
+
+}
+
+}
+</style>
+
+{% endblock %}

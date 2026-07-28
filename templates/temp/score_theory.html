@@ -1,0 +1,7 @@
+<h2>Score Theory Submission - {{ submission.user.username }}</h2>
+
+<form method="POST">
+    <label>Score:</label>
+    <input type="number" name="score" value="{{ submission.score or 0 }}" required>
+    <button type="submit">Save Score</button>
+</form>

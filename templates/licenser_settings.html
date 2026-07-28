@@ -1,0 +1,452 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<style>
+
+:root{
+    --primary:#2563eb;
+    --primary-dark:#1d4ed8;
+    --bg:#f3f4f6;
+    --card:#ffffff;
+    --text:#111827;
+    --muted:#6b7280;
+    --border:#d1d5db;
+    --input-bg:#f9fafb;
+    --shadow:0 8px 30px rgba(0,0,0,0.08);
+}
+
+/* PAGE */
+
+.page-wrap{
+    max-width:760px;
+    margin:40px auto;
+    padding:20px;
+}
+
+/* CARD */
+
+.settings-card{
+    background:var(--card);
+    border-radius:22px;
+    padding:35px;
+    box-shadow:var(--shadow);
+    border:1px solid #e5e7eb;
+    animation:fadeIn 0.3s ease;
+}
+
+/* HEADER */
+
+.page-header{
+    margin-bottom:30px;
+}
+
+.page-title{
+    margin:0;
+    font-size:32px;
+    font-weight:800;
+    color:var(--text);
+    letter-spacing:-0.5px;
+}
+
+.page-subtitle{
+    margin-top:10px;
+    color:var(--muted);
+    font-size:15px;
+    line-height:1.6;
+}
+
+/* INFO BOX */
+
+.info-box{
+    background:#eff6ff;
+    border:1px solid #bfdbfe;
+    color:#1e40af;
+    padding:16px;
+    border-radius:14px;
+    margin-bottom:30px;
+    font-size:14px;
+    line-height:1.6;
+}
+
+/* FORM */
+
+.form-group{
+    margin-bottom:24px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:10px;
+    font-size:15px;
+    font-weight:700;
+    color:#374151;
+}
+
+/* INPUT AREA */
+
+.input-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.input-wrapper{
+    position:relative;
+    flex:1;
+}
+
+.form-input{
+    width:100%;
+    padding:15px 16px;
+    border:1px solid var(--border);
+    border-radius:14px;
+    background:var(--input-bg);
+    font-size:15px;
+    color:var(--text);
+    outline:none;
+    transition:all 0.2s ease;
+    box-sizing:border-box;
+}
+
+.form-input:focus{
+    border-color:var(--primary);
+    background:#ffffff;
+    box-shadow:0 0 0 4px rgba(37,99,235,0.12);
+}
+
+/* BUTTONS */
+
+.toggle-btn{
+    min-width:90px;
+    padding:14px 16px;
+    border:none;
+    border-radius:14px;
+    background:#111827;
+    color:white;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    transition:all 0.2s ease;
+}
+
+.toggle-btn:hover{
+    background:#1f2937;
+    transform:translateY(-1px);
+}
+
+/* SAVE BUTTON */
+
+.save-btn{
+    width:100%;
+    padding:16px;
+    border:none;
+    border-radius:16px;
+    background:linear-gradient(
+        135deg,
+        var(--primary),
+        var(--primary-dark)
+    );
+    color:white;
+    font-size:16px;
+    font-weight:800;
+    cursor:pointer;
+    transition:all 0.2s ease;
+    margin-top:10px;
+}
+
+.save-btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 10px 20px rgba(37,99,235,0.2);
+}
+
+/* FOOTER NOTE */
+
+.footer-note{
+    margin-top:18px;
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+}
+
+/* MOBILE */
+
+@media(max-width:600px){
+
+    .page-wrap{
+        padding:12px;
+        margin:20px auto;
+    }
+
+    .settings-card{
+        padding:22px;
+        border-radius:18px;
+    }
+
+    .page-title{
+        font-size:26px;
+    }
+
+    .input-row{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .toggle-btn{
+        width:100%;
+    }
+}
+
+</style>
+
+<div class="page-wrap">
+
+    <div class="settings-card">
+
+        <div class="page-header">
+
+            <h2 class="page-title">
+                Licensing Settings
+            </h2>
+
+            <div class="page-subtitle">
+                Configure SMTP provider, licenser credentials,
+                forwarding email and application ID.
+            </div>
+
+        </div>
+
+        <div class="info-box">
+
+            Your credentials are securely encrypted before storage.
+
+            <br><br>
+
+            Supports:
+            Gmail,
+            Outlook,
+            Yahoo,
+            Zoho,
+            Brevo,
+            SendGrid,
+            Mailgun
+            and custom SMTP providers.
+
+        </div>
+
+        <form method="post">
+
+            <!-- SMTP SERVER -->
+            <div class="form-group">
+
+                <label>
+                    SMTP Server
+                </label>
+
+                <input
+                    type="text"
+                    name="smtp_server"
+                    value="{{ smtp_server }}"
+                    required
+                    class="form-input"
+                    placeholder="smtp.gmail.com"
+                >
+
+            </div>
+
+            <!-- SMTP PORT -->
+            <div class="form-group">
+
+                <label>
+                    SMTP Port: 465 / 587
+                </label>
+
+                <input
+                    type="number"
+                    name="smtp_port"
+                    value="{{ smtp_port }}"
+                    required
+                    class="form-input"
+                    placeholder="587"
+                >
+
+            </div>
+
+            <!-- LICENSER EMAIL -->
+            <div class="form-group">
+
+                <label>
+                    Licenser Email / SMTP Username
+                </label>
+
+                <div class="input-row">
+
+                    <div class="input-wrapper">
+
+                        <input
+                            type="password"
+                            id="licenser_email"
+                            name="licenser_email"
+                            value="{{ licenser_email }}"
+                            required
+                            autocomplete="off"
+                            class="form-input"
+                            placeholder="Enter email or username"
+                        >
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="toggle-btn"
+                        onclick="toggleField('licenser_email', this)"
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- SMTP PASSWORD -->
+            <div class="form-group">
+
+                <label>
+                    SMTP Password / API Key
+                </label>
+
+                <div class="input-row">
+
+                    <div class="input-wrapper">
+
+                        <input
+                            type="password"
+                            id="licenser_password"
+                            name="licenser_password"
+                            value="{{ licenser_password }}"
+                            required
+                            autocomplete="off"
+                            class="form-input"
+                            placeholder="Enter SMTP password or API key"
+                        >
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="toggle-btn"
+                        onclick="toggleField('licenser_password', this)"
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- FORWARDING EMAIL -->
+            <div class="form-group">
+
+                <label>
+                    Global Email Forwarding Address
+                </label>
+
+                <div class="input-row">
+
+                    <div class="input-wrapper">
+
+                        <input
+                            type="password"
+                            id="forwarding_email"
+                            name="forwarding_email"
+                            value="{{ forwarding_email }}"
+                            autocomplete="off"
+                            class="form-input"
+                            placeholder="Enter forwarding email"
+                        >
+
+                    </div>
+
+                    <button
+                        type="button"
+                        class="toggle-btn"
+                        onclick="toggleField('forwarding_email', this)"
+                    >
+                        Show
+                    </button>
+
+                </div>
+
+                <small style="
+                    display:block;
+                    margin-top:8px;
+                    color:#6b7280;
+                    line-height:1.5;
+                ">
+                    Every email sent from the app will also be forwarded
+                    automatically to this address.
+                </small>
+
+            </div>
+
+            <!-- APP ID -->
+            <div class="form-group">
+
+                <label>
+                    App ID
+                </label>
+
+                <input
+                    type="text"
+                    id="app_id"
+                    name="app_id"
+                    value="{{ app_id }}"
+                    required
+                    autocomplete="off"
+                    class="form-input"
+                    placeholder="Enter application ID"
+                >
+
+            </div>
+
+            <!-- SAVE -->
+            <button
+                type="submit"
+                class="save-btn"
+            >
+                Save Settings
+            </button>
+
+            <div class="footer-note">
+                Changes apply immediately without restarting the app.
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+function toggleField(fieldId, button) {
+
+    const field = document.getElementById(fieldId);
+
+    if (field.type === "password") {
+
+        field.type = "text";
+
+        button.innerText = "Hide";
+
+    } else {
+
+        field.type = "password";
+
+        button.innerText = "Show";
+    }
+}
+
+</script>
+
+{% endblock %}

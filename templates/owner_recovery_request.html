@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}
+Owner Recovery
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5" style="max-width:650px;">
+
+    <h2>Owner Recovery</h2>
+
+    <hr>
+
+    <p>
+
+        If this software has been locked because ownership
+        verification failed, you can request a recovery link.
+
+    </p>
+
+    <form method="POST">
+
+        <button class="btn btn-danger">
+            Request Recovery
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

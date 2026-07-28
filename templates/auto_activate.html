@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %} Auto Activate Students {% endblock %}
+{% block content %}
+
+<h2>Auto Activate New Students</h2>
+
+<form method="post">
+
+    <label>
+        Number of new students to auto activate:
+    </label>
+    <br>
+
+    <input type="number"
+           name="count"
+           min="1"
+           required>
+    <br><br>
+
+    <label>
+        Validity Period (days):
+    </label>
+    <br>
+
+    <input type="number"
+           name="period"
+           value="365"
+           min="1"
+           required>
+    <br><br>
+
+    <label>
+        Email:
+    </label>
+    <br>
+
+    <input type="email"
+           name="email"
+           required>
+    <br><br>
+
+    <button type="submit">
+        Activate Auto Licensing
+    </button>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('license_dashboard') }}">
+    ← Back
+</a>
+
+{% endblock %}

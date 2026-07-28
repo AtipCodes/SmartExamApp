@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>🗑 Recycle Bin</h2>
+
+<!-- ================= RESULTS ================= -->
+<form method="post" action="{{ url_for('restore_results') }}">
+
+<button class="btn">♻ Restore Selected</button>
+
+<table border="1" style="width:100%;margin-top:10px;">
+
+<tr>
+<th>
+    <input type="checkbox" id="select_all_results">
+</th>
+<th>Username</th>
+<th>Subject</th>
+<th>Score</th>
+<th>Deleted At</th>
+<th>Auto Delete</th>
+</tr>
+
+{% for r in results %}
+<tr>
+<td>
+    <input type="checkbox" name="result_ids" value="{{ r.id }}">
+</td>
+<td>{{ r.user.username }}</td>
+<td>{{ r.subject.name }}</td>
+<td>{{ r.score }}</td>
+<td>{{ r.deleted_at.strftime("%Y-%m-%d") }}</td>
+<td>
+    <span class="countdown" data-time="{{ r.delete_timestamp }}"></span>
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</form>
+
+<!-- ================= RESULTS PAGINATION ================= -->
+
+<div style="margin-top:20px;">
+
+{% if results_total_pages > 1 %}
+
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+
+    {% if results_page > 1 %}
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=1, theory_page=theory_page) }}">
+           « First
+        </a>
+
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page-1, theory_page=theory_page) }}">
+           ‹ Prev
+        </a>
+    {% endif %}
+
+    <span>
+        Page {{ results_page }} of {{ results_total_pages }}
+    </span>
+
+    {% if results_page < results_total_pages %}
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page+1, theory_page=theory_page) }}">
+           Next ›
+        </a>
+
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_total_pages, theory_page=theory_page) }}">
+           Last »
+        </a>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+<hr style="margin:30px 0;">
+
+<!-- ================= THEORY SUBMISSIONS ================= -->
+<form method="post" action="{{ url_for('restore_theory_submissions') }}">
+
+<button class="btn">♻ Restore Selected Theory</button>
+
+<table border="1" style="width:100%;margin-top:10px;">
+
+<tr>
+<th>
+    <input type="checkbox" id="select_all_theory">
+</th>
+<th>Student</th>
+<th>Subject</th>
+<th>Score</th>
+<th>Deleted At</th>
+<th>Auto Delete</th>
+</tr>
+
+{% for sub in theory_submissions %}
+<tr>
+<td>
+    <input type="checkbox" name="submission_ids" value="{{ sub.id }}">
+</td>
+<td>{{ sub.user.first_name }} {{ sub.user.last_name }}</td>
+<td>{{ sub.subject.name }}</td>
+<td>{{ sub.score or '-' }}</td>
+<td>{{ sub.deleted_at.strftime("%Y-%m-%d") }}</td>
+<td>
+    <span class="countdown" data-time="{{ sub.delete_timestamp }}"></span>
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</form>
+
+<!-- ================= THEORY PAGINATION ================= -->
+
+<div style="margin-top:20px;">
+
+{% if theory_total_pages > 1 %}
+
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+
+    {% if theory_page > 1 %}
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page, theory_page=1) }}">
+           « First
+        </a>
+
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page, theory_page=theory_page-1) }}">
+           ‹ Prev
+        </a>
+    {% endif %}
+
+    <span>
+        Page {{ theory_page }} of {{ theory_total_pages }}
+    </span>
+
+    {% if theory_page < theory_total_pages %}
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page, theory_page=theory_page+1) }}">
+           Next ›
+        </a>
+
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page, theory_page=theory_total_pages) }}">
+           Last »
+        </a>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+<!-- ================= SELECT ALL SCRIPT ================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // RESULTS
+    const selectAllResults = document.getElementById("select_all_results");
+    if (selectAllResults) {
+        selectAllResults.addEventListener("change", function () {
+            document.querySelectorAll('input[name="result_ids"]').forEach(cb => {
+                cb.checked = selectAllResults.checked;
+            });
+        });
+    }
+
+    // THEORY
+    const selectAllTheory = document.getElementById("select_all_theory");
+    if (selectAllTheory) {
+        selectAllTheory.addEventListener("change", function () {
+            document.querySelectorAll('input[name="submission_ids"]').forEach(cb => {
+                cb.checked = selectAllTheory.checked;
+            });
+        });
+    }
+
+});
+
+function formatTime(seconds) {
+    if (seconds <= 0) return "Due for deletion";
+
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    return `${days}d ${hours}h ${minutes}m ${secs}s`;
+}
+
+function updateCountdowns() {
+    const elements = document.querySelectorAll(".countdown");
+
+    const now = Math.floor(Date.now() / 1000);
+
+    elements.forEach(el => {
+        const target = parseInt(el.dataset.time);
+
+        if (!target) {
+            el.innerHTML = "-";
+            return;
+        }
+
+        const diff = target - now;
+
+        if (diff <= 0) {
+            el.innerHTML = "<span style='color:red;font-weight:bold;'>Due for deletion</span>";
+        } else {
+            el.innerHTML = `<span style="color:green;font-weight:bold;">${formatTime(diff)}</span>`;
+        }
+    });
+}
+
+// run immediately
+updateCountdowns();
+
+// update every 1 second
+setInterval(updateCountdowns, 1000);
+</script>
+
+{% endblock %}

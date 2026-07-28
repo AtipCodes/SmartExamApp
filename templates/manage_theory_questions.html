@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+{% block title %}Manage Theory Questions{% endblock %}
+
+{% block content %}
+
+<h2>Theory Questions for {{ subject.name }}</h2>
+
+<!-- ================= BULK DELETE FORM ================= -->
+
+<form method="POST" action="{{ url_for('delete_theory_bulk') }}">
+
+    <input type="checkbox" id="select_all">
+    <label for="select_all">Select All</label>
+
+    <br><br>
+
+    <button type="submit" class="btn btn-danger">
+        Delete Selected
+    </button>
+
+    <br><br>
+
+    {% for q in questions %}
+
+        <div class="question-card">
+
+            <input
+                type="checkbox"
+                name="selected_ids"
+                value="{{ q.id }}"
+                class="bulk-checkbox">
+
+            <strong>{{ loop.index }}.</strong>
+            {{ q.prompt }}
+
+            {% if q.image %}
+                <br>
+                <img
+                    src="/static/uploads/{{ q.image }}"
+                    width="150">
+            {% endif %}
+
+            {% if q.answer %}
+
+            <div style="
+                margin-top:12px;
+                background:#f8fafc;
+                border-left:4px solid #16a34a;
+                padding:10px;
+                border-radius:6px;
+            ">
+
+                <strong>Answer / Marking Guide</strong>
+
+                <div style="margin-top:8px; white-space:pre-wrap;">
+                    {{ q.answer }}
+                </div>
+
+            </div>
+
+            {% endif %}
+
+            <div style="margin-top:5px;">
+
+                <!-- Edit -->
+
+                <a
+                    href="{{ url_for('edit_theory', q_id=q.id) }}"
+                    class="btn btn-sm">
+
+                    Edit
+
+                </a>
+
+                <!-- Single Delete -->
+
+                <button
+                    type="button"
+                    class="btn btn-sm btn-danger"
+                    onclick="deleteTheory({{ q.id }})">
+
+                    Delete
+
+                </button>
+
+            </div>
+
+        </div>
+
+        <hr>
+
+    {% endfor %}
+
+</form>
+
+<!-- Hidden form for single delete -->
+
+<form
+    id="deleteTheoryForm"
+    method="POST"
+    style="display:none;">
+</form>
+
+<hr>
+
+<!-- ================= CREATE THEORY QUESTION ================= -->
+
+<div class="create-card">
+
+    <h3>📝 Create New Theory Question</h3>
+
+    <p class="help-text">
+
+        Enter the theory question below together with the official answer
+        or marking guide. Students will only see the question, while the
+        answer is used for marking and review.
+
+    </p>
+
+    <form method="POST" enctype="multipart/form-data">
+
+        <div class="form-group">
+
+            <label for="prompt">
+
+                <strong>Theory Question</strong>
+
+            </label>
+
+            <textarea
+                id="prompt"
+                name="prompt"
+                rows="6"
+                placeholder="Type the theory question here..."
+                required></textarea>
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="image">
+
+                <strong>Question Image (Optional)</strong>
+
+            </label>
+
+            <input
+                type="file"
+                id="image"
+                name="image"
+                accept="image/*">
+
+        </div>
+
+        <div class="form-group">
+
+            <label for="answer">
+
+                <strong>Model Answer / Marking Guide</strong>
+
+            </label>
+
+            <textarea
+                id="answer"
+                name="answer"
+                rows="8"
+                placeholder="Type the expected answer or marking guide here..."></textarea>
+
+        </div>
+
+        <div class="button-row">
+
+            <button
+                type="submit"
+                name="create_question"
+                class="btn btn-primary">
+
+                ➕ Create Question
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<style>
+
+.question-card{
+
+    background:#fefefe;
+    padding:12px;
+    border-radius:6px;
+    margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+
+}
+
+</style>
+
+<script>
+
+document.getElementById('select_all').addEventListener('click', function(){
+
+    const checkboxes =
+        document.querySelectorAll('.bulk-checkbox');
+
+    checkboxes.forEach(cb => cb.checked = this.checked);
+
+});
+
+function deleteTheory(id){
+
+    if(!confirm("Delete this question?")){
+        return;
+    }
+
+    const form =
+        document.getElementById("deleteTheoryForm");
+
+    form.action = "/admin/theory/" + id + "/delete";
+
+    form.submit();
+
+}
+
+</script>
+
+<style>
+
+/* ================= CREATE QUESTION CARD ================= */
+
+.create-card{
+    background:#ffffff;
+    border:1px solid #dbeafe;
+    border-radius:14px;
+    padding:25px;
+    margin-top:35px;
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+}
+
+.create-card h3{
+    margin-top:0;
+    margin-bottom:10px;
+    color:#1e40af;
+}
+
+.help-text{
+    color:#6b7280;
+    margin-bottom:20px;
+    line-height:1.6;
+}
+
+.form-group{
+    margin-bottom:20px;
+}
+
+.form-group label{
+    display:block;
+    margin-bottom:8px;
+    color:#374151;
+    font-weight:600;
+}
+
+.form-group textarea{
+    width:100%;
+    box-sizing:border-box;
+    padding:14px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    resize:vertical;
+    font-size:15px;
+    font-family:inherit;
+    transition:.25s;
+    background:#fff;
+}
+
+.form-group textarea:focus{
+    outline:none;
+    border-color:#2563eb;
+    box-shadow:0 0 0 4px rgba(37,99,235,.15);
+}
+
+.button-row{
+    margin-top:25px;
+    display:flex;
+    justify-content:flex-end;
+}
+
+.btn{
+    border:none;
+    cursor:pointer;
+    padding:12px 24px;
+    border-radius:10px;
+    font-weight:600;
+    font-size:15px;
+    transition:.25s;
+}
+
+.btn-primary{
+    background:#2563eb;
+    color:#fff;
+}
+
+.btn-primary:hover{
+    background:#1d4ed8;
+    transform:translateY(-1px);
+    box-shadow:0 6px 12px rgba(37,99,235,.25);
+}
+
+</style>
+
+{% endblock %}

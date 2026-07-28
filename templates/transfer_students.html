@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <h2 class="mb-4">
+
+        Transfer Students
+
+    </h2>
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <strong>
+
+                Current Class:
+
+                {{ academic_class.class_name }}
+
+            </strong>
+
+        </div>
+
+        <div class="card-body">
+
+            {% if students %}
+
+            <form method="post">
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+
+                        Destination Class
+
+                    </label>
+
+                    <select
+                        name="destination_class_id"
+                        class="form-select"
+                        required
+                    >
+
+                        <option value="">
+
+                            Select Destination Class
+
+                        </option>
+
+                        {% for c in destination_classes %}
+
+                        <option value="{{ c.id }}">
+
+                            {{ c.class_name }}
+
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <table
+                    class="table table-bordered table-hover"
+                >
+
+                    <thead>
+
+                        <tr>
+
+                            <th width="40">
+
+                                <input
+                                    type="checkbox"
+                                    id="select_all"
+                                >
+
+                            </th>
+
+                            <th>
+
+                                Registration No.
+
+                            </th>
+
+                            <th>
+
+                                Name
+
+                            </th>
+
+                            <th>
+
+                                Username
+
+                            </th>
+
+                            <th>
+
+                                Age
+
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                        {% for student in students %}
+
+                        <tr>
+
+                            <td>
+
+                                <input
+                                    type="checkbox"
+                                    name="student_ids"
+                                    value="{{ student.id }}"
+                                    class="student-checkbox"
+                                >
+
+                            </td>
+
+                            <td>
+
+                                {{ student.registration_number or "" }}
+
+                            </td>
+
+                            <td>
+
+                                {{ student.last_name }}
+
+                                {{ student.first_name }}
+
+                            </td>
+
+                            <td>
+
+                                {{ student.username }}
+
+                            </td>
+
+                            <td>
+
+                                {{ student.age or "" }}
+
+                            </td>
+
+                        </tr>
+
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                <button
+                    class="btn btn-warning"
+                    type="submit"
+                >
+
+                    Transfer Selected Students
+
+                </button>
+
+                <a
+                    href="{{ url_for('classes') }}"
+                    class="btn btn-secondary"
+                >
+
+                    Cancel
+
+                </a>
+
+            </form>
+
+            {% else %}
+
+            <div class="alert alert-info">
+
+                No students found in this class.
+
+            </div>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const selectAll = document.getElementById("select_all");
+
+if (selectAll) {
+
+    selectAll.addEventListener("change", function () {
+
+        document.querySelectorAll(".student-checkbox")
+            .forEach(function (checkbox) {
+
+                checkbox.checked = selectAll.checked;
+
+            });
+
+    });
+
+}
+
+</script>
+
+{% endblock %}

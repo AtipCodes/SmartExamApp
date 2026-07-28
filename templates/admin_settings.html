@@ -1,0 +1,438 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Admin Settings
+{% endblock %}
+
+{% block content %}
+
+<style>
+
+.settings-container{
+    max-width:1000px;
+    margin:auto;
+}
+
+.settings-card{
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.settings-card h3{
+    margin-top:0;
+    color:#0d6efd;
+}
+
+.settings-card label{
+    font-weight:600;
+}
+
+.settings-card input[type="text"],
+.settings-card input[type="password"],
+.settings-card input[type="number"],
+.settings-card select{
+    width:100%;
+    max-width:500px;
+    padding:8px;
+    border:1px solid #ccc;
+    border-radius:6px;
+    margin-top:5px;
+}
+
+.settings-btn{
+    background:#0d6efd;
+    color:white;
+    border:none;
+    padding:10px 18px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.settings-btn:hover{
+    opacity:.9;
+}
+
+.settings-btn-success{
+    background:#198754;
+}
+
+.settings-btn-warning{
+    background:#fd7e14;
+}
+
+.settings-btn-danger{
+    background:#dc3545;
+}
+
+.verify-report{
+    background:#eef7ff;
+    border:1px solid #7fbfff;
+    border-radius:8px;
+    padding:10px;
+    margin-bottom:20px;
+    white-space:pre-wrap;
+    word-break:break-word;
+}
+
+.verify-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:8px;
+}
+
+.verify-title{
+    font-weight:bold;
+    color:#0d6efd;
+}
+
+.verify-close-form{
+    margin:0;
+}
+
+.verify-close-btn{
+    border:none;
+    background:none;
+    color:#dc3545;
+    font-size:16px;
+    cursor:pointer;
+}
+
+.info-box{
+    background:#f8f9fa;
+    border-left:4px solid #0d6efd;
+    padding:12px;
+    border-radius:6px;
+}
+
+.inline-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+</style>
+
+<div class="settings-container">
+
+
+<h2>⚙ Admin Settings</h2>
+
+{% if verify_report %}
+
+<div class="verify-report">
+
+    <div class="verify-header">
+
+        <div class="verify-title">
+            Database Verification Result
+        </div>
+
+        <form
+            method="POST"
+            action="{{ url_for('clear_verify_report') }}"
+            class="verify-close-form"
+        >
+            <button
+                type="submit"
+                class="verify-close-btn"
+                title="Close"
+            >
+                ✖
+            </button>
+        </form>
+
+    </div>
+
+    {{ verify_report }}
+
+</div>
+
+{% endif %}
+
+<!-- ===================================== -->
+<!-- MAIL SETTINGS -->
+<!-- ===================================== -->
+
+<div class="settings-card">
+
+    <h3>📧 Mail Settings (SMTP Provider)</h3>
+
+    <form method="POST">
+
+        <p>
+            <label>Provider</label><br>
+            <select name="admin_smtp_provider">
+                <option value="gmail" {% if smtp_provider=='gmail' %}selected{% endif %}>Gmail</option>
+                <option value="outlook" {% if smtp_provider=='outlook' %}selected{% endif %}>Outlook</option>
+                <option value="yahoo" {% if smtp_provider=='yahoo' %}selected{% endif %}>Yahoo</option>
+                <option value="zoho" {% if smtp_provider=='zoho' %}selected{% endif %}>Zoho</option>
+                <option value="sendgrid" {% if smtp_provider=='sendgrid' %}selected{% endif %}>SendGrid</option>
+                <option value="mailgun" {% if smtp_provider=='mailgun' %}selected{% endif %}>Mailgun</option>
+                <option value="custom" {% if smtp_provider=='custom' %}selected{% endif %}>Custom SMTP</option>
+            </select>
+        </p>
+
+        <p>
+            <label>SMTP Server</label><br>
+            <input
+                type="text"
+                name="admin_smtp_server"
+                value="{{ smtp_server }}"
+            >
+        </p>
+
+        <p>
+            <label>SMTP Port (465 / 587)</label><br>
+            <input
+                type="number"
+                name="admin_smtp_port"
+                value="{{ smtp_port }}"
+            >
+        </p>
+
+        <p>
+            <label>SMTP Username / API Key</label><br>
+            <input
+                type="text"
+                name="admin_smtp_username"
+                value="{{ smtp_username }}"
+            >
+        </p>
+
+        <p>
+            <label>SMTP Password / API Key</label>
+
+            <div class="inline-row">
+
+                <input
+                    type="password"
+                    id="smtp_password"
+                    name="admin_smtp_password"
+                    value="{{ smtp_password or '' }}"
+                    placeholder="Enter password or API key"
+                >
+
+                <button
+                    type="button"
+                    class="settings-btn"
+                    onclick="togglePassword('smtp_password')"
+                >
+                    Show / Hide
+                </button>
+
+            </div>
+
+        </p>
+
+        <p>
+            <label>
+                <input
+                    type="checkbox"
+                    name="admin_smtp_use_tls"
+                    {% if smtp_use_tls %}checked{% endif %}
+                >
+                Use TLS
+            </label>
+        </p>
+
+        <hr>
+
+        <h3>📨 Auto Forward Exam Results</h3>
+
+        <label>
+            <input
+                type="checkbox"
+                name="auto_forward_scores"
+                {% if auto_forward %}checked{% endif %}
+            >
+            Enable automatic sending of exam scores to students
+        </label>
+
+        <br><br>
+
+        <button
+            type="submit"
+            class="settings-btn"
+        >
+            Save Settings
+        </button>
+
+    </form>
+
+</div>
+
+{% if user.role == 'admin' %}
+
+<!-- ===================================== -->
+<!-- DATABASE MIGRATION -->
+<!-- ===================================== -->
+
+<div class="settings-card">
+
+    <h3>🗄 Database Migration Tools</h3>
+
+    <form
+        method="POST"
+        action="{{ url_for('import_sqlite_to_postgres') }}"
+        enctype="multipart/form-data"
+    >
+
+        <p>
+
+            <label>
+                SQLite Database File
+            </label>
+
+            <br>
+
+            <input
+                type="file"
+                name="sqlite_file"
+                accept=".db,.sqlite,.sqlite3"
+                required
+            >
+
+        </p>
+
+        <p>
+
+            <label>
+
+                <input
+                    type="checkbox"
+                    name="replace_existing"
+                    checked
+                >
+
+                Replace existing PostgreSQL data
+
+            </label>
+
+        </p>
+
+        <button
+            type="submit"
+            class="settings-btn settings-btn-warning"
+        >
+            Import SQLite → PostgreSQL
+        </button>
+
+    </form>
+
+</div>
+
+<!-- ===================================== -->
+<!-- POSTGRES BACKUP -->
+<!-- ===================================== -->
+
+<div class="settings-card">
+
+    <h3>💾 PostgreSQL Backup Tools</h3>
+
+    <form
+        method="POST"
+        action="{{ url_for('export_postgres_backup') }}"
+    >
+
+        <button
+            type="submit"
+            class="settings-btn settings-btn-success"
+        >
+            Download PostgreSQL Backup (.sql)
+        </button>
+
+    </form>
+
+    <br>
+
+    <form
+        method="POST"
+        action="{{ url_for('restore_postgres_backup') }}"
+        enctype="multipart/form-data"
+    >
+
+        <input
+            type="file"
+            name="backup_file"
+            accept=".sql"
+            required
+        >
+
+        <button
+            type="submit"
+            class="settings-btn settings-btn-danger"
+        >
+            Restore PostgreSQL Backup
+        </button>
+
+    </form>
+
+    <br>
+
+    <form
+        method="POST"
+        action="{{ url_for('verify_databases') }}"
+    >
+
+        <button
+            type="submit"
+            class="settings-btn"
+        >
+            Verify Databases
+        </button>
+
+    </form>
+
+</div>
+
+{% endif %}
+
+<!-- ===================================== -->
+<!-- APP INFO -->
+<!-- ===================================== -->
+
+<div class="settings-card">
+
+    <h3>ℹ Application Information</h3>
+
+    <div class="info-box">
+
+        <p>
+            <b>App ID:</b>
+		<input
+			name="app_id"
+			value="{{ app_id }}"
+			{% if not can_edit_app_id %}readonly{% endif %}
+		>
+        </p>
+
+    </div>
+
+</div>
+
+
+</div>
+
+<script>
+
+function togglePassword(id){
+
+    const field = document.getElementById(id);
+
+    if(field.type === "password"){
+        field.type = "text";
+    }else{
+        field.type = "password";
+    }
+
+}
+
+</script>
+
+{% endblock %}

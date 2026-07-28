@@ -1,0 +1,2688 @@
+﻿{% extends 'base.html' %}
+
+{% block title %}Upload Questions{% endblock %}
+
+{% block content %}
+
+<!-- ================= PAGE HEADER ================= -->
+
+<div class="page-header">
+
+    <div class="page-header-left">
+
+        <h2>📚 Question Management Dashboard</h2>
+
+        <p>
+            Upload, manage, review, edit and organize Objective and Theory
+            questions from one place.
+        </p>
+
+    </div>
+
+</div>
+
+<details class="allowed-files-box">
+
+    <summary>
+        📁 Allowed Upload Types
+        <span class="summary-note">
+            (Click to expand)
+        </span>
+    </summary>
+
+    <div class="allowed-files-content">
+
+        <div class="file-category">
+
+            <h4>🖼 Images</h4>
+
+            <div class="extension-list">
+
+                {% for ext in [
+                    "png","jpg","jpeg","gif","bmp",
+                    "webp","tif","tiff","svg","ico"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="file-category">
+
+            <h4>📄 Documents</h4>
+
+            <div class="extension-list">
+
+                {% for ext in [
+                    "pdf",
+                    "doc","docx",
+                    "xls","xlsx",
+                    "ppt","pptx",
+                    "odt","ods","odp",
+                    "txt","csv","rtf"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="file-category">
+
+            <h4>💻 Programming</h4>
+
+            <div class="extension-list">
+
+                {% for ext in [
+                    "py","js","html","css",
+                    "json","xml","sql",
+                    "cpp","c","h",
+                    "java","cs","php"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="file-category">
+
+            <h4>🎨 Design</h4>
+
+            <div class="extension-list">
+
+                {% for ext in [
+                    "psd","ai","indd","cdr"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="file-category">
+
+            <h4>📦 Archives</h4>
+
+            <div class="extension-list">
+
+                {% for ext in [
+                    "zip","rar","7z"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="file-category">
+
+            <h4>📱 Android</h4>
+
+            <div class="extension-list">
+
+                <span class="extension-pill">
+                    .apk
+                </span>
+
+            </div>
+
+        </div>
+
+        <div class="file-category">
+
+            <h4>🎮 Scratch</h4>
+
+            <div class="extension-list">
+
+                {% for ext in [
+                    "sb","sb2","sb3"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="file-category">
+
+            <h4>🎵 Audio</h4>
+
+            <div class="extension-list">
+
+                {% for ext in [
+                    "mp3","wav","ogg","m4a"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+        <div class="file-category">
+            <h4>🎬 Video</h4>
+            <div class="extension-list">
+                {% for ext in [
+                    "mp4","avi","mov","mkv","wmv"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="file-category">
+            <h4>📚 Others</h4>
+            <div class="extension-list">
+                {% for ext in [
+                    "epub","md"
+                ] %}
+                    <span class="extension-pill">
+                        .{{ ext }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</details>
+
+<!-- ================= DASHBOARD SUMMARY ================= -->
+
+<div class="stats-grid">
+
+    <div class="stat-card">
+
+        <div class="stat-title">
+            Subjects
+        </div>
+
+        <div class="stat-value">
+            {{ subjects|length }}
+        </div>
+
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-title">
+            Objective Questions
+        </div>
+
+        <div class="stat-value">
+
+            {% set total_objective = namespace(count=0) %}
+
+            {% for s in subjects %}
+                {% set total_objective.count =
+                    total_objective.count +
+                    subject_questions[s.id]|length %}
+            {% endfor %}
+
+            {{ total_objective.count }}
+
+        </div>
+
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-title">
+            Theory Questions
+        </div>
+
+        <div class="stat-value">
+
+            {% set total_theory = namespace(count=0) %}
+
+            {% for s in subjects %}
+                {% set total_theory.count =
+                    total_theory.count +
+                    subject_theory_questions[s.id]|length %}
+            {% endfor %}
+
+            {{ total_theory.count }}
+
+        </div>
+
+    </div>
+
+
+
+</div>
+
+
+<!-- ================= FILTER BAR ================= -->
+
+<div class="filter-box">
+
+<form
+    method="get"
+    class="filter-grid"
+    action="{{ url_for('upload_questions') }}">
+
+    <div>
+
+        <label>Academic Session</label>
+
+        <input
+            type="text"
+            name="session_filter"
+            value="{{ session_filter or '' }}"
+            placeholder="e.g. 2025/2026">
+
+    </div>
+
+
+    <div>
+
+        <label>Term</label>
+
+        <select name="term_filter">
+
+            <option value="">All Terms</option>
+
+            <option value="A"
+                {% if term_filter=="A" %}
+                    selected
+                {% endif %}>
+                A
+            </option>
+
+            <option value="B"
+                {% if term_filter=="B" %}
+                    selected
+                {% endif %}>
+                B
+            </option>
+
+            <option value="C"
+                {% if term_filter=="C" %}
+                    selected
+                {% endif %}>
+                C
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div>
+
+        <label>Assessment Type</label>
+
+        <select name="type_filter">
+
+            <option value="">All</option>
+
+            <option value="exam"
+                {% if type_filter=="exam" %}
+                    selected
+                {% endif %}>
+                Examination
+            </option>
+
+            <option value="ca"
+                {% if type_filter=="ca" %}
+                    selected
+                {% endif %}>
+                Continuous Assessment
+            </option>
+
+        </select>
+
+    </div>
+
+
+    <div class="filter-actions">
+
+        <button
+            class="btn"
+            type="submit">
+
+            🔍 Filter
+
+        </button>
+
+        <a
+            class="btn btn-secondary"
+            href="{{ url_for('upload_questions') }}">
+
+            Reset
+
+        </a>
+
+    </div>
+
+</form>
+
+</div>
+
+
+
+
+
+<!-- ================= MAIN UPLOAD FORM ================= -->
+
+<div class="upload-card">
+
+<form method="post" enctype="multipart/form-data">
+
+    <!-- SUBJECT (NOW FILTER-AWARE) -->
+    <div class="section subject-select-card">
+
+        <label><strong>Subject</strong></label>
+
+        <select name="subject_id" id="subjectSelect" class="full-width">
+
+            {% for s in subjects %}
+
+                <option value="{{ s.id }}">
+                    {{ s.name }}
+                    {% if s.label %}[{{ s.label }}]{% endif %}
+                    {% if s.group %}- {{ s.group.name }}{% endif %}
+                </option>
+
+            {% endfor %}
+
+        </select>
+
+    </div>
+
+<!-- ================= OBJECTIVE ================= -->
+
+<div class="section">
+
+    <h3>🎯 Objective Upload</h3>
+
+    <div class="upload-tip">
+        Choose one of the upload methods below.
+    </div>
+
+    <!-- ================================================= -->
+    <!-- SINGLE OBJECTIVE QUESTION -->
+    <!-- ================================================= -->
+
+    <div class="upload-subcard">
+
+        <h4>📝 Single Objective Question</h4>
+
+        <p class="help-text">
+            Type one objective question below.
+            An image is optional.
+        </p>
+
+        <label>
+            <strong>Question</strong>
+        </label>
+
+		<textarea
+			name="prompt"
+			rows="4"
+			class="{% if errors.get('prompt') %}input-error{% endif %}"
+			placeholder="Type one objective question here...">{{ request.form.get("prompt","") }}</textarea>
+
+		<div
+			class="field-error {% if errors.get('prompt') %}show{% endif %}"
+			id="promptError">
+
+			{{ errors.get("prompt","") }}
+
+		</div>
+
+        <div class="choices-grid">
+
+			<input
+				type="text"
+				name="choices"
+				placeholder="Choice A"
+				value="{{ request.form.getlist('choices')[0] if request.form.getlist('choices')|length > 0 else '' }}">
+
+			<div class="field-error"></div>
+
+			<input
+				type="text"
+				name="choices"
+				placeholder="Choice B"
+				value="{{ request.form.getlist('choices')[1] if request.form.getlist('choices')|length > 1 else '' }}">
+
+			<div class="field-error"></div>
+
+			<input
+				type="text"
+				name="choices"
+				placeholder="Choice C"
+				value="{{ request.form.getlist('choices')[2] if request.form.getlist('choices')|length > 2 else '' }}">
+
+			<div class="field-error"></div>
+
+			<input
+				type="text"
+				name="choices"
+				placeholder="Choice D"
+				value="{{ request.form.getlist('choices')[3] if request.form.getlist('choices')|length > 3 else '' }}">
+
+			<div class="field-error"></div>
+
+        </div>
+
+        <label>
+            <strong>Correct Answer</strong>
+        </label>
+
+		<input
+			type="text"
+			name="answer"
+			class="{% if errors.get('answer') %}input-error{% endif %}"
+			placeholder="Correct Answer"
+			value="{{ request.form.get('answer','') }}">
+
+		<div
+			class="field-error {% if errors.get('answer') %}show{% endif %}"
+			id="answerError">
+
+			{{ errors.get("answer","") }}
+
+		</div>
+
+        <label>
+            <strong>Question Image (Optional)</strong>
+        </label>
+
+        <input
+            type="file"
+            name="image"
+            accept="image/*">
+
+        <br><br>
+
+        <button
+            class="btn"
+            type="submit"
+            name="submit_single_objective">
+
+            🖼 Submit Question
+
+        </button>
+
+    </div>
+
+    <hr style="margin:35px 0;">
+
+    <!-- ================================================= -->
+    <!-- BULK OBJECTIVE UPLOAD -->
+    <!-- ================================================= -->
+
+    <div class="upload-subcard">
+
+        <h4>📂 Bulk Objective Upload</h4>
+
+        <p class="help-text">
+            Upload objective questions from a supported
+            <strong>TXT</strong>,
+            <strong>CSV</strong> or
+            <strong>Excel (.xlsx)</strong> file.
+        </p>
+
+		<label>
+			<strong>Choose TXT / CSV / XLSX File</strong>
+		</label>
+
+		<div id="dropZone" class="drop-zone">
+
+			<div class="drop-zone-text">
+
+				📂 Drag & Drop File Here
+
+				<br><br>
+
+				<small>
+					or click to browse
+				</small>
+
+			</div>
+
+			<input
+				id="bulkFile"
+				type="file"
+				name="file"
+				accept=".txt,.csv,.xlsx">
+
+		</div>
+
+		<div
+			id="selectedFile"
+			class="selected-file">
+
+		</div>
+
+		<br>
+
+		<button
+			class="btn"
+			type="submit"
+			name="submit_bulk_objective">
+
+			📂 Upload Questions
+
+		</button>
+
+    </div>
+
+</div>
+
+		<!-- FORMAT GUIDE -->
+
+		<details class="format-guide">
+
+			<summary>
+				📖 View Supported Formats
+			</summary>
+
+			<div class="format-grid">
+
+				<!-- FORMAT 1 -->
+
+				<div class="format-card">
+					<h4>Format 1 — Pipe Format</h4>
+
+	<pre>
+	1. What is RAM?|Random Access Memory
+
+	2. What is CPU?|Central Processing Unit
+	</pre>
+
+				</div>
+
+				<!-- FORMAT 2 -->
+
+				<div class="format-card">
+					<h4>Format 2 — 6-Line Format</h4>
+
+	<pre>
+	1. Artificial Intelligence enables
+	computers to ______
+
+	A) Cook food
+	B) Behave like humans
+	C) Repair phones
+	D) Build houses
+	B) Behave like humans
+
+	2. Machine Learning allows
+	computers to learn from ______
+
+	A) Paintings
+	B) Data and patterns
+	C) Batteries
+	D) Printers
+	B) Data and patterns
+	</pre>
+
+				</div>
+
+				<!-- FORMAT 3 -->
+
+				<div class="format-card">
+					<h4>Format 3 — Pipe MCQ Format</h4>
+
+	<pre>
+What is RAM?|Random Access Memory|Read Access Memory|Remote Access Memory|Random Allocation Memory|Random Access Memory
+	</pre>
+
+				</div>
+
+				<!-- FORMAT 4 -->
+
+				<div class="format-card">
+					<h4>Format 4 — CSV Upload</h4>
+
+	<pre>
+	question,choice1,choice2,
+	choice3,choice4,answer
+
+	What is RAM?,
+	Random Access Memory,
+	Read Access Memory,
+	Remote Access Memory,
+	Random Allocation Memory,
+	Random Access Memory
+	</pre>
+
+				</div>
+
+				<!-- FORMAT 5 -->
+
+				<div class="format-card">
+					<h4>Format 5 — Excel (.xlsx)</h4>
+
+	<pre>
+	Columns Required:
+
+	Question
+	Choice1
+	Choice2
+	Choice3
+	Choice4
+	Answer
+
+	Save as .xlsx and upload.
+	</pre>
+
+				</div>
+
+			</div>
+
+		</details>
+
+	</div>
+
+<!-- ================= THEORY TEXT ================= -->
+
+	<div class="section theory-section">
+
+		<h3>📝 Theory Text Upload</h3>
+		<div class="upload-tip">
+			✔ Paste hundreds of theory questions at once. WAEC, NECO,
+			standard numbering and multi-line answers are supported.
+		</div>		
+
+		<p class="help-text">
+			Paste one or multiple theory questions below. The system supports
+			standard numbering, colon numbering, WAEC/NECO style questions,
+			and multi-line answers.
+		</p>
+
+		<textarea
+			name="theory_text"
+			rows="12"
+			class="{% if errors.get('theory_text') %}input-error{% endif %}"
+			placeholder="Paste theory questions here...">{{ request.form.get("theory_text","") }}</textarea>
+
+		<div
+			class="field-error {% if errors.get('theory_text') %}show{% endif %}"
+			id="theoryError">
+
+			{{ errors.get("theory_text","") }}
+
+		</div>
+
+		<button class="btn btn-primary"
+				name="save_theory_text">
+			💾 Save Theory Questions
+		</button>
+
+		<details class="format-guide">
+			<summary>
+				📖 View Supported Formats
+			</summary>
+
+			<div class="format-grid">
+
+				<div class="format-card">
+					<h4>Standard Numbering</h4>
+
+	<pre>
+	1. What is a computer?
+	Answer: An electronic device.
+
+	2. What is software?
+	Answer: Programs that run on a computer.
+	</pre>
+				</div>
+
+				<div class="format-card">
+					<h4>Colon Numbering</h4>
+
+	<pre>
+	1: What is a computer?
+	Answer: An electronic device.
+
+	2: What is software?
+	Answer: Programs that run on a computer.
+	</pre>
+				</div>
+
+				<div class="format-card">
+					<h4>WAEC / NECO Style</h4>
+
+	<pre>
+	1(a) Define a computer.
+	(b) Mention 3 uses.
+	(c) Mention 2 input devices.
+
+	Answer:
+	(a) A computer is...
+	(b) Education, Banking,
+		Communication
+	(c) Keyboard, Mouse
+	</pre>
+				</div>
+
+				<div class="format-card">
+					<h4>Multi-Line Answers</h4>
+
+	<pre>
+	1. Explain Python.
+
+	Answer:
+	Python is a high-level language.
+	It is interpreted.
+	It is widely used.
+
+	2. Explain Flask.
+
+	Answer:
+	Flask is a web framework.
+	Used for building web applications.
+	</pre>
+				</div>
+
+			</div>
+
+		</details>
+
+	</div>
+
+    <!-- ================= THEORY IMAGE ================= -->
+
+    <div class="section image-upload-box">
+
+        <h3>Theory Image Upload</h3>
+
+		<select name="theory_question_id"
+				id="theoryQuestionSelect">
+
+			<option value="">
+				Select Theory Question
+			</option>
+
+		</select>
+
+        <input type="file"
+               name="theory_image">
+
+        <button class="btn"
+                name="upload_theory_image">
+            Upload Theory Image
+        </button>
+
+    </div>
+
+</form>
+
+</div>
+
+<!-- ================= RECENT SUBJECTS ================= -->
+
+<div class="section">
+
+    <h3>📚 Last 10 Subjects</h3>
+
+    <div class="recent-grid">
+
+        {% for s in recent_subjects %}
+
+        <div class="subject-pill">
+            <strong>{{ s.name }}</strong>
+            {% if s.group %}
+                <span>({{ s.group.name }})</span>
+            {% endif %}
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</div>
+
+<!-- ================= UPLOADED QUESTIONS ================= -->
+
+<div class="section">
+
+<div class="dashboard-stats">
+
+    <div class="stat-card">
+
+        <h2>{{ subjects|length }}</h2>
+
+        <p>Subjects</p>
+
+    </div>
+
+    <div class="stat-card">
+
+        <h2>
+
+            {% set total_obj = namespace(v=0) %}
+            {% for sid, qlist in subject_questions.items() %}
+                {% set total_obj.v = total_obj.v + qlist|length %}
+            {% endfor %}
+            {{ total_obj.v }}
+
+        </h2>
+
+        <p>Objective Questions</p>
+
+    </div>
+
+    <div class="stat-card">
+
+        <h2>
+
+            {% set total_theory = namespace(v=0) %}
+            {% for sid, qlist in subject_theory_questions.items() %}
+                {% set total_theory.v = total_theory.v + qlist|length %}
+            {% endfor %}
+            {{ total_theory.v }}
+
+        </h2>
+
+        <p>Theory Questions</p>
+
+    </div>
+
+</div>
+
+<div class="admin-shortcuts">
+
+    <a class="shortcut"
+       href="{{ url_for('recycle_bin') }}">
+
+        ♻ Recycle Bin
+
+    </a>
+
+    <a class="shortcut"
+       href="{{ url_for('manage_subjects') }}">
+
+        📚 Subject Manager
+
+    </a>
+
+    <a class="shortcut"
+       href="{{ url_for('dashboard') }}">
+
+        🏠 Dashboard
+
+    </a>
+
+</div>
+
+<h3>📋 Uploaded Questions by Subject</h3>
+
+<!-- ================= SUBJECT SEARCH ================= -->
+
+<div class="section">
+
+    <h3>🔎 Quick Subject Search</h3>
+
+    <p class="help-text">
+
+        Start typing below to instantly locate a subject from
+        the current page without scrolling.
+
+    </p>
+
+	<input
+		type="text"
+		id="subjectSearch"
+		class="search-box"
+		placeholder="Search subjects..."
+		onkeyup="filterSubjects()">
+		
+	<div class="visible-subject-box">
+
+		<span  class=""visible-label"">
+			Visible Subjects
+		</span >
+
+		<span
+			class="visibleSubjectCount"
+			id="visible-count">
+
+			{{ subjects|length }}
+
+		</span>
+
+	</div>		
+
+</div>
+
+<div id="noSubjectsFound" class="empty-box" style="display:none;">
+
+    🔍 No subjects match your search.
+
+</div>
+
+{% for s in subjects %}
+
+<div class="subject-card"
+     data-search="
+        {{ s.name|lower }}
+        {% if s.label %} {{ s.label|lower }}{% endif %}
+        {% if s.group %} {{ s.group.name|lower }}{% endif %}
+     ">
+
+    <!-- Subject Header -->
+
+	<div class="subject-header">
+
+		<div>
+
+			<button
+				class="subject-toggle"
+				type="button"
+				onclick="toggleQuestions('subject_{{ s.id }}')">
+
+				{{ s.name }}
+
+				{% if s.group %}
+					({{ s.group.name }})
+				{% endif %}
+
+				▼
+
+			</button>
+
+			<div class="subject-summary">
+
+				<span class="count-pill blue">
+
+					{{ subject_questions[s.id]|length }}
+					Objective
+
+				</span>
+
+				<span class="count-pill green">
+
+					{{ subject_theory_questions[s.id]|length }}
+					Theory
+
+				</span>
+
+			</div>
+
+		</div>
+
+		<div class="subject-actions">
+
+			<a href="{{ url_for('edit_questions_main',subject_id=s.id) }}"
+			   class="mini-btn edit-btn">
+				✏ Edit
+			</a>
+
+			<a href="{{ url_for('review_questions',subject_id=s.id) }}"
+			   class="mini-btn review-btn">
+				🗑 Review
+			</a>
+
+			<a href="{{ url_for('manage_theory_questions',subject_id=s.id) }}"
+			   class="mini-btn theory-btn">
+				📝 Theory
+			</a>
+
+			<a href="{{ url_for('view_theory_submissions',subject_id=s.id) }}"
+			   class="mini-btn submit-btn">
+				📄 Scripts
+			</a>
+
+		</div>
+
+	</div>
+
+    <div
+        id="subject_{{ s.id }}"
+        class="subject-questions">
+
+        {% set questions = subject_questions.get(s.id, []) %}
+
+        {% if questions %}
+
+			<input
+				class="subject-search"
+				placeholder="Search questions..."
+				onkeyup="searchSubject(this,'subjecttable{{ s.id }}')">			
+
+			<div class="table-summary">
+				{{ questions|length }}
+				objective questions
+			</div>
+
+			<table class="question-table"
+				id="subjecttable{{ s.id }}">
+
+				<thead>
+
+					<tr>
+
+						<th>#</th>
+
+						<th>Question</th>
+
+						<th>Image</th>
+
+						<th>Answer</th>
+
+						<th>Actions</th>
+
+					</tr>
+
+				</thead>
+
+				<tbody>
+
+				{% for q in questions %}
+
+					<tr>
+
+						<td>
+
+							{{ loop.index }}
+
+						</td>
+
+						<td>
+
+							<strong>{{ q.prompt }}</strong>
+
+							{% if q.choices_json %}
+
+								<ul class="mini-choice-list">
+
+								{% for c in q.choices_json|fromjson %}
+
+									<li>{{ c }}</li>
+
+								{% endfor %}
+
+								</ul>
+
+							{% endif %}
+
+						</td>
+
+						<td>
+
+							{% if q.image %}
+
+								<img
+									src="{{ url_for(
+										'static',
+										filename='uploads/' ~ q.image
+									) }}"
+									class="table-image">
+
+							{% else %}
+
+								—
+
+							{% endif %}
+
+						</td>
+
+						<td>
+
+							{{ q.answer }}
+
+						</td>
+
+						<td>
+
+							<div class="table-actions">
+
+								<a
+									class="small-btn blue"
+									href="{{ url_for(
+										'edit_single_question',
+										subject_id=s.id,
+										qid=q.id
+									) }}">
+
+									Edit
+
+								</a>
+
+							</div>
+
+						</td>
+
+					</tr>
+
+				{% endfor %}
+
+				</tbody>
+
+			</table>
+
+        {% else %}
+
+            <div class="empty-box">
+
+                No objective questions uploaded yet.
+
+            </div>
+
+        {% endif %}
+
+        {% set theory = subject_theory_questions.get(s.id, []) %}
+
+        {% if theory %}
+
+        <div class="theory-preview">
+
+            <h4>
+
+                📝 Theory Questions
+
+            </h4>
+
+            <ul>
+
+                {% for tq in theory[:5] %}
+
+                <li>
+
+                    {{ tq.prompt[:120] }}
+
+                    {% if tq.prompt|length > 120 %}
+
+                        ...
+
+                    {% endif %}
+
+                </li>
+
+                {% endfor %}
+
+            </ul>
+
+            {% if theory|length > 5 %}
+
+                <em>
+
+                    Showing first 5 of {{ theory|length }}
+
+                </em>
+
+            {% endif %}
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+{% if subjects_pagination.pages > 1 %}
+
+<div class="pagination">
+
+    {% if subjects_pagination.has_prev %}
+
+    <a
+        class="page-btn"
+        href="{{ url_for(
+            'upload_questions',
+            subject_page=subjects_pagination.prev_num,
+            session_filter=session_filter,
+            term_filter=term_filter,
+            type_filter=type_filter
+        ) }}">
+
+        ← Previous
+
+    </a>
+
+    {% endif %}
+
+    {% for page_num in subjects_pagination.iter_pages() %}
+
+        {% if page_num %}
+
+        <a
+            class="page-btn {% if page_num==subjects_pagination.page %}active{% endif %}"
+            href="{{ url_for(
+                'upload_questions',
+                subject_page=page_num,
+                session_filter=session_filter,
+                term_filter=term_filter,
+                type_filter=type_filter
+            ) }}">
+
+            {{ page_num }}
+
+        </a>
+
+        {% endif %}
+
+    {% endfor %}
+
+    {% if subjects_pagination.has_next %}
+
+    <a
+        class="page-btn"
+        href="{{ url_for(
+            'upload_questions',
+            subject_page=subjects_pagination.next_num,
+            session_filter=session_filter,
+            term_filter=term_filter,
+            type_filter=type_filter
+        ) }}">
+
+        Next →
+
+    </a>
+
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+<script>
+
+const theoryQuestions =
+    {{ theory_questions_json|tojson|safe }};
+
+const subjectSelect =
+    document.getElementById("subjectSelect");
+
+const questionSelect =
+    document.getElementById("theoryQuestionSelect");
+
+function loadTheoryQuestions(){
+
+    const subjectId =
+        subjectSelect.value;
+
+    questionSelect.innerHTML =
+        '<option value="">Select Theory Question</option>';
+
+    if(!subjectId){
+        return;
+    }
+
+    const questions =
+        theoryQuestions[subjectId] || [];
+
+    questions.forEach(function(q){
+
+        const option =
+            document.createElement("option");
+
+        option.value = q.id;
+
+        let preview = q.prompt;
+
+        if(preview.length > 80){
+            preview =
+                preview.substring(0,80) + "...";
+        }
+
+        option.textContent = preview;
+
+        questionSelect.appendChild(option);
+
+    });
+}
+
+subjectSelect.addEventListener(
+    "change",
+    loadTheoryQuestions
+);
+
+loadTheoryQuestions();
+
+function filterSubjects() {
+
+    const value = document
+        .getElementById("subjectSearch")
+        .value
+        .trim()
+        .toLowerCase();
+
+    const cards = document.querySelectorAll(".subject-card");
+
+    const counter =
+        document.getElementById("visibleSubjectCount");
+
+    const noResults =
+        document.getElementById("noSubjectsFound");
+
+    let visible = 0;
+
+    cards.forEach(function(card) {
+
+        const searchable =
+            card.dataset.search || "";
+
+        if (searchable.includes(value)) {
+
+            card.style.display = "";
+
+            visible++;
+
+        } else {
+
+            card.style.display = "none";
+
+        }
+
+    });
+
+    counter.textContent = visible;
+
+    noResults.style.display =
+        visible === 0
+            ? "block"
+            : "none";
+
+}
+
+function searchSubject(box,id){
+
+    let value =
+        box.value.toLowerCase();
+
+    let rows =
+        document
+        .getElementById(id)
+        .getElementsByTagName("tr");
+
+    for(let i=1;i<rows.length;i++){
+
+        rows[i].style.display =
+            rows[i].innerText
+            .toLowerCase()
+            .includes(value)
+            ? ""
+            : "none";
+
+    }
+
+}
+
+</script>
+
+<!-- ================= SCRIPT ================= -->
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+    const firstError =
+        document.querySelector(".input-error");
+
+    if(firstError){
+
+        firstError.scrollIntoView({
+
+            behavior:"smooth",
+
+            block:"center"
+
+        });
+
+        firstError.focus();
+
+    }
+
+});
+
+</script>
+<script>
+
+function toggleQuestions(id){
+    const el = document.getElementById(id);
+    el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+}
+
+</script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.querySelector("form");
+
+    if (!form) return;
+
+    let clickedButton = null;
+
+    // Remember which submit button was clicked
+    form.querySelectorAll("button[type='submit']").forEach(function(btn){
+
+        btn.addEventListener("click", function(){
+
+            clickedButton = this;
+
+        });
+
+    });
+
+    form.addEventListener("submit", function(){
+
+        // Disable ALL buttons
+        form.querySelectorAll("button[type='submit']").forEach(function(btn){
+
+            btn.disabled = true;
+
+        });
+
+        if(!clickedButton){
+            return;
+        }
+
+        // Store original text
+        clickedButton.dataset.original =
+            clickedButton.innerHTML;
+
+        // Change only the clicked button
+        switch(clickedButton.name){
+
+            case "submit_single_objective":
+                clickedButton.innerHTML =
+                    "⏳ Saving Question...";
+                break;
+
+            case "submit_bulk_objective":
+                clickedButton.innerHTML =
+                    "📂 Uploading Questions...";
+                break;
+
+            case "save_theory_text":
+                clickedButton.innerHTML =
+                    "💾 Saving Theory...";
+                break;
+
+            case "upload_theory_image":
+                clickedButton.innerHTML =
+                    "🖼 Uploading Image...";
+                break;
+
+            default:
+                clickedButton.innerHTML =
+                    "⏳ Processing...";
+        }
+
+    });
+
+});
+
+</script>
+<script>
+
+const dropZone =
+    document.getElementById("dropZone");
+
+const bulkInput =
+    document.getElementById("bulkFile");
+
+const selectedFile =
+    document.getElementById("selectedFile");
+
+if(dropZone){
+
+    dropZone.addEventListener("click",function(){
+
+        bulkInput.click();
+
+    });
+
+    bulkInput.addEventListener("change",function(){
+
+        if(this.files.length){
+
+            selectedFile.innerHTML =
+                "Selected: <strong>" +
+                this.files[0].name +
+                "</strong>";
+
+        }
+
+    });
+
+    dropZone.addEventListener("dragover",function(e){
+
+        e.preventDefault();
+
+        dropZone.classList.add("dragging");
+
+    });
+
+    dropZone.addEventListener("dragleave",function(){
+
+        dropZone.classList.remove("dragging");
+
+    });
+
+    dropZone.addEventListener("drop",function(e){
+
+        e.preventDefault();
+
+        dropZone.classList.remove("dragging");
+
+        bulkInput.files =
+            e.dataTransfer.files;
+
+        if(bulkInput.files.length){
+
+            selectedFile.innerHTML =
+                "Selected: <strong>" +
+                bulkInput.files[0].name +
+                "</strong>";
+
+        }
+
+    });
+
+}
+
+</script>
+
+<!-- ================= STYLE ================= -->
+<style>
+
+/* ================= GLOBAL ================= */
+
+.page-header{
+    background:linear-gradient(135deg,#2563eb,#1d4ed8);
+    color:white;
+    padding:20px 25px;
+    border-radius:14px;
+    margin-bottom:20px;
+    box-shadow:0 6px 18px rgba(37,99,235,.25);
+}
+
+.page-header h2{
+    margin:0;
+    font-size:28px;
+    font-weight:700;
+}
+
+/* ================= CARDS ================= */
+
+.filter-box,
+.upload-card,
+.section{
+    background:#fff;
+    padding:22px;
+    border-radius:14px;
+    margin-bottom:22px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+    border:1px solid #eef2f7;
+}
+
+/* ================= FORM ================= */
+
+.filter-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:15px;
+    align-items:end;
+}
+
+.filter-actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+label{
+    font-weight:600;
+    color:#374151;
+}
+
+.section h3{
+    margin-top:0;
+    margin-bottom:15px;
+    color:#1e3a8a;
+}
+
+.full-width,
+textarea,
+input,
+select{
+    width:100%;
+    padding:12px;
+    border:1px solid #d1d5db;
+    border-radius:10px;
+    margin-top:5px;
+    margin-bottom:15px;
+    box-sizing:border-box;
+    transition:.2s;
+    background:white;
+}
+
+textarea{
+    min-height:120px;
+    resize:vertical;
+}
+
+textarea:focus,
+input:focus,
+select:focus{
+    outline:none;
+    border-color:#2563eb;
+    box-shadow:0 0 0 3px rgba(37,99,235,.15);
+}
+
+/* ================= BUTTONS ================= */
+
+.btn{
+    border:none;
+    background:#2563eb;
+    color:white;
+    padding:12px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+    transition:.2s;
+    text-decoration:none;
+    display:inline-block;
+}
+
+.btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(37,99,235,.2);
+}
+
+.btn-secondary{
+    background:#6b7280;
+}
+
+.btn-primary{
+    background:#2563eb;
+}
+
+/* ================= SUBJECT SECTION ================= */
+
+.subject-select-card{
+    background:#f8fafc;
+    border:1px solid #dbeafe;
+    border-radius:12px;
+    padding:15px;
+}
+
+/* ================= OBJECTIVE ================= */
+
+.choices-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+}
+
+/* ================= THEORY ================= */
+
+.theory-section{
+    background:#fafcff;
+    border-left:5px solid #2563eb;
+}
+
+.help-text{
+    color:#6b7280;
+    margin-bottom:10px;
+    font-size:14px;
+}
+
+.upload-tip{
+    background:#ecfdf5;
+    color:#065f46;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:15px;
+    border:1px solid #a7f3d0;
+    font-weight:600;
+}
+
+/* ================= FORMAT GUIDE ================= */
+
+.format-guide{
+    margin-top:20px;
+    border:1px solid #dbeafe;
+    border-radius:12px;
+    overflow:hidden;
+}
+
+.format-guide summary{
+    padding:15px;
+    background:#eff6ff;
+    cursor:pointer;
+    font-weight:700;
+    color:#1e40af;
+    user-select:none;
+}
+
+.format-guide[open] summary{
+    border-bottom:1px solid #dbeafe;
+}
+
+.format-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+    gap:15px;
+    padding:15px;
+}
+
+.format-card{
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:12px;
+    overflow:hidden;
+}
+
+.format-card h4{
+    margin:0;
+    padding:12px;
+    background:#f8fafc;
+    color:#2563eb;
+    border-bottom:1px solid #e5e7eb;
+}
+
+.format-card pre{
+    margin:0;
+    padding:15px;
+    white-space:pre-wrap;
+    font-size:13px;
+    line-height:1.6;
+    overflow:auto;
+}
+
+/* ================= THEORY IMAGE ================= */
+
+.image-upload-box{
+    background:#f8fafc;
+    border:1px dashed #93c5fd;
+    border-radius:12px;
+    padding:15px;
+}
+
+/* ================= SUBJECT LIST ================= */
+
+.subject-card{
+    background:white;
+    border-radius:12px;
+    margin-bottom:16px;
+    overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+
+.subject-toggle{
+    width:100%;
+    border:none;
+    text-align:left;
+    background:linear-gradient(
+        90deg,
+        #f8fafc,
+        #eff6ff
+    );
+    padding:16px;
+    font-weight:700;
+    cursor:pointer;
+    color:#1e3a8a;
+}
+
+.subject-toggle:hover{
+    background:#eff6ff;
+}
+
+.subject-questions{
+    display:none;
+    padding:15px;
+}
+
+/* ================= QUESTION CARD ================= */
+
+.question-card{
+    background:#fafafa;
+    padding:18px;
+    border-radius:12px;
+    margin-bottom:15px;
+    border-left:5px solid #2563eb;
+}
+
+.question-card p{
+    margin:8px 0;
+}
+
+.question-card ul{
+    margin-top:8px;
+}
+
+.question-image{
+    width:180px;
+    max-width:100%;
+    border-radius:10px;
+    margin-top:10px;
+    border:1px solid #e5e7eb;
+}
+
+/* ================= TAGS ================= */
+
+.tag{
+    display:inline-block;
+    background:#dbeafe;
+    color:#1e40af;
+    padding:4px 10px;
+    border-radius:20px;
+    margin-right:5px;
+    font-size:12px;
+    font-weight:600;
+}
+
+/* ================= RECENT SUBJECTS ================= */
+
+.recent-grid{
+    display:grid;
+    grid-template-columns:
+    repeat(auto-fit,minmax(220px,1fr));
+    gap:12px;
+}
+
+.subject-pill{
+    background:#f8fafc;
+    border:1px solid #e5e7eb;
+    padding:14px;
+    border-radius:12px;
+    transition:.2s;
+}
+
+.subject-pill:hover{
+    transform:translateY(-2px);
+    box-shadow:0 3px 8px rgba(0,0,0,.08);
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:768px){
+
+    .choices-grid{
+        grid-template-columns:1fr;
+    }
+
+    .format-grid{
+        grid-template-columns:1fr;
+    }
+
+    .page-header h2{
+        font-size:22px;
+    }
+}
+
+.pagination{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:20px;
+}
+
+.page-btn{
+    padding:8px 14px;
+    border-radius:8px;
+    text-decoration:none;
+    background:#f3f4f6;
+    color:#374151;
+    font-weight:600;
+}
+
+.page-btn:hover{
+    background:#dbeafe;
+}
+
+.page-btn.active{
+    background:#2563eb;
+    color:white;
+}
+/* =======================================================
+   PART 1C
+   Upload Question Management Interface Styles
+   ======================================================= */
+
+/* Subject header */
+
+.subject-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    flex-wrap:wrap;
+}
+
+/* Top action buttons */
+
+.subject-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.mini-btn{
+    display:inline-block;
+    text-decoration:none;
+    padding:8px 12px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+    transition:.2s;
+    color:#fff;
+}
+
+.mini-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(0,0,0,.15);
+}
+
+/* Individual colors */
+
+.edit-btn{
+    background:#2563eb;
+}
+
+.review-btn{
+    background:#dc2626;
+}
+
+.theory-btn{
+    background:#059669;
+}
+
+.submit-btn{
+    background:#7c3aed;
+}
+
+/* Question header */
+
+.question-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+}
+
+.question-number{
+    font-weight:700;
+    color:#1e40af;
+}
+
+.question-id{
+    background:#eef2ff;
+    color:#4338ca;
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+
+/* Inline action buttons */
+
+.inline-actions{
+    margin-top:15px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+}
+
+.small-btn{
+    display:inline-block;
+    text-decoration:none;
+    color:#fff;
+    padding:8px 14px;
+    border-radius:8px;
+    font-size:13px;
+    font-weight:600;
+    transition:.2s;
+}
+
+.small-btn:hover{
+    transform:translateY(-1px);
+}
+
+.small-btn.blue{
+    background:#2563eb;
+}
+
+.small-btn.red{
+    background:#dc2626;
+}
+
+.small-btn.green{
+    background:#059669;
+}
+
+/* Theory preview */
+
+.theory-preview{
+    margin-top:25px;
+    padding:18px;
+    background:#f8fafc;
+    border:1px solid #dbeafe;
+    border-radius:12px;
+}
+
+.theory-preview h4{
+    margin-top:0;
+    margin-bottom:12px;
+    color:#1e40af;
+}
+
+.theory-preview ul{
+    margin:0;
+    padding-left:20px;
+}
+
+.theory-preview li{
+    margin-bottom:8px;
+    line-height:1.5;
+}
+
+/* Empty subject */
+
+.empty-box{
+    padding:18px;
+    background:#f9fafb;
+    border:1px dashed #d1d5db;
+    border-radius:10px;
+    text-align:center;
+    color:#6b7280;
+    font-style:italic;
+}
+
+/* Improve question cards */
+
+.question-card{
+    position:relative;
+    transition:.2s;
+}
+
+.question-card:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+}
+
+/* Better images */
+
+.question-image{
+    display:block;
+    margin-top:12px;
+    margin-bottom:12px;
+    max-width:240px;
+    max-height:240px;
+    object-fit:contain;
+    border-radius:10px;
+    border:1px solid #e5e7eb;
+}
+
+/* Mobile */
+
+@media(max-width:768px){
+
+    .subject-header{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .subject-actions{
+        width:100%;
+    }
+
+    .mini-btn{
+        flex:1;
+        text-align:center;
+    }
+
+    .question-top{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:8px;
+    }
+
+    .inline-actions{
+        flex-direction:column;
+    }
+
+    .small-btn{
+        text-align:center;
+    }
+
+}
+
+.dashboard-stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    text-align:center;
+    border:1px solid #e5e7eb;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+
+.stat-card h2{
+    margin:0;
+    color:#2563eb;
+    font-size:34px;
+}
+
+.admin-shortcuts{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+.shortcut{
+    padding:10px 18px;
+    background:#1d4ed8;
+    color:white;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:600;
+}
+
+.search-box{
+    margin-bottom:20px;
+}
+
+.subject-summary{
+    margin-top:8px;
+}
+
+.count-pill{
+    display:inline-block;
+    padding:5px 12px;
+    border-radius:20px;
+    font-size:12px;
+    color:white;
+    margin-right:8px;
+}
+
+.count-pill.blue{
+    background:#2563eb;
+}
+
+.count-pill.green{
+    background:#059669;
+}
+
+.question-table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+    margin-top:15px;
+
+}
+
+.question-table th{
+
+    background:#eff6ff;
+
+    padding:12px;
+
+    text-align:left;
+
+    color:#1e40af;
+
+}
+
+.question-table td{
+
+    border-bottom:1px solid #eee;
+
+    padding:12px;
+
+    vertical-align:top;
+
+}
+
+.question-table tr:hover{
+
+    background:#fafcff;
+
+}
+
+.table-image{
+
+    width:80px;
+
+    border-radius:8px;
+
+}
+
+.table-actions{
+
+    display:flex;
+
+    gap:8px;
+
+    flex-wrap:wrap;
+
+}
+
+.mini-choice-list{
+
+    margin-top:8px;
+
+    padding-left:20px;
+
+}
+
+.table-summary{
+
+    margin:10px 0;
+
+    font-weight:bold;
+
+    color:#2563eb;
+
+}
+
+/* ==========================================================
+   Allowed Upload Types
+   ========================================================== */
+
+.allowed-files-box{
+
+    margin-bottom:22px;
+
+    border:1px solid #dbeafe;
+
+    border-radius:14px;
+
+    overflow:hidden;
+
+    background:#fff;
+
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+
+}
+
+.allowed-files-box summary{
+
+    cursor:pointer;
+
+    padding:16px 20px;
+
+    background:#eff6ff;
+
+    color:#1e40af;
+
+    font-weight:700;
+
+    font-size:16px;
+
+    user-select:none;
+
+    transition:.2s;
+
+}
+
+.allowed-files-box summary:hover{
+
+    background:#dbeafe;
+
+}
+
+.allowed-files-box[open] summary{
+
+    border-bottom:1px solid #dbeafe;
+
+}
+
+.summary-note{
+
+    color:#6b7280;
+
+    font-size:12px;
+
+    font-weight:400;
+
+    margin-left:10px;
+
+}
+
+.allowed-files-content{
+
+    padding:20px;
+
+    display:grid;
+
+    grid-template-columns:
+        repeat(auto-fit,minmax(260px,1fr));
+
+    gap:18px;
+
+}
+
+.file-category{
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+    border-radius:12px;
+
+    padding:15px;
+
+}
+
+.file-category h4{
+
+    margin-top:0;
+
+    margin-bottom:12px;
+
+    color:#1e3a8a;
+
+    font-size:16px;
+
+}
+
+.extension-list{
+
+    display:flex;
+
+    flex-wrap:wrap;
+
+    gap:8px;
+
+}
+
+.extension-pill{
+
+    background:#2563eb;
+
+    color:white;
+
+    padding:6px 10px;
+
+    border-radius:18px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    transition:.2s;
+
+}
+
+.extension-pill:hover{
+
+    transform:translateY(-1px);
+
+    box-shadow:0 3px 8px rgba(37,99,235,.25);
+
+}
+
+@media(max-width:768px){
+
+    .allowed-files-content{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+.upload-subcard{
+
+    background:#fff;
+
+    border:1px solid #dfe6ee;
+
+    border-radius:10px;
+
+    padding:18px;
+
+    margin-top:18px;
+
+}
+
+.upload-subcard h4{
+
+    margin-top:0;
+
+    margin-bottom:10px;
+
+    color:#0b5cab;
+
+}
+
+.upload-subcard .help-text{
+
+    margin-bottom:18px;
+
+    color:#666;
+
+}
+
+.upload-subcard input[type=file]{
+
+    margin-top:8px;
+
+    margin-bottom:10px;
+
+}
+
+/* ==========================================
+   Field Validation
+========================================== */
+
+.field-error{
+
+    display:none;
+
+    margin-top:-8px;
+
+    margin-bottom:12px;
+
+    padding:8px 12px;
+
+    background:#fef2f2;
+
+    border-left:4px solid #dc2626;
+
+    color:#991b1b;
+
+    border-radius:6px;
+
+    font-size:13px;
+
+    font-weight:600;
+
+}
+
+.field-error.show{
+
+    display:block;
+
+}
+
+.input-error{
+
+    border:1px solid #dc2626 !important;
+
+    background:#fef2f2;
+
+}
+
+.input-error{
+
+    animation:shake .25s;
+
+}
+
+@keyframes shake{
+
+    0%{transform:translateX(0);}
+    20%{transform:translateX(-4px);}
+    40%{transform:translateX(4px);}
+    60%{transform:translateX(-3px);}
+    80%{transform:translateX(3px);}
+    100%{transform:translateX(0);}
+
+}
+
+button:disabled{
+
+    opacity:.7;
+
+    cursor:not-allowed;
+
+    transform:none!important;
+
+}
+
+/* ==============================
+   Drag & Drop Upload
+   ============================== */
+
+.drop-zone{
+
+    border:2px dashed #60a5fa;
+
+    background:#f8fbff;
+
+    border-radius:12px;
+
+    padding:40px;
+
+    text-align:center;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    position:relative;
+
+}
+
+.drop-zone:hover{
+
+    background:#eef6ff;
+
+}
+
+.drop-zone.dragging{
+
+    border-color:#2563eb;
+
+    background:#dbeafe;
+
+}
+
+.drop-zone input{
+
+    display:none;
+
+}
+
+.drop-zone-text{
+
+    color:#2563eb;
+
+    font-weight:700;
+
+    font-size:17px;
+
+}
+
+.selected-file{
+
+    margin-top:12px;
+
+    color:#059669;
+
+    font-weight:600;
+
+}
+
+.visible-subject-box{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    margin-top:15px;
+
+    margin-bottom:20px;
+
+    padding:10px 18px;
+
+    background:#eff6ff;
+
+    border:1px solid #bfdbfe;
+
+    border-radius:12px;
+
+    font-weight:600;
+
+}
+
+.visible-label{
+
+    color:#1e40af;
+
+}
+
+.visible-count{
+
+    background:#2563eb;
+
+    color:white;
+
+    min-width:34px;
+
+    height:34px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    border-radius:50%;
+
+    font-weight:bold;
+
+}
+
+</style>
+
+{% endblock %}

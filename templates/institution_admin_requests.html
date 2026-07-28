@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% block title %}Institution Admin Requests{% endblock %}
+
+{% block content %}
+
+<style>
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#fff;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+    margin-bottom:20px;
+}
+.page-header h2{
+    margin:0;
+    color:#2c3e50;
+}
+.page-header p{
+    margin:5px 0 0;
+    color:#777;
+    font-size:14px;
+}
+.request-card{
+    background:#fff;
+    border-radius:12px;
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+    padding:20px;
+}
+.toolbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:15px;
+    gap:10px;
+    flex-wrap:wrap;
+}
+.toolbar input{
+    width:320px;
+    max-width:100%;
+    padding:10px;
+    border:1px solid #ddd;
+    border-radius:8px;
+}
+.table-responsive{
+    overflow-x:auto;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th{
+    background:#f4f6f9;
+    padding:12px;
+    text-align:left;
+    border-bottom:1px solid #ddd;
+    white-space:nowrap;
+}
+td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    vertical-align:middle;
+}
+tr:hover{
+    background:#fafafa;
+}
+.badge{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:30px;
+    background:#fff3cd;
+    color:#856404;
+    font-size:12px;
+    font-weight:bold;
+}
+.btn{
+    border:none;
+    border-radius:6px;
+    padding:7px 14px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:bold;
+}
+.btn-success{
+    background:#28a745;
+    color:white;
+}
+.btn-success:hover{
+    background:#218838;
+}
+.btn-danger{
+    background:#dc3545;
+    color:white;
+}
+.btn-danger:hover{
+    background:#c82333;
+}
+.action-buttons{
+    display:flex;
+    gap:8px;
+}
+.empty-state{
+    text-align:center;
+    padding:50px;
+    color:#888;
+}
+</style>
+
+<div class="page-header">
+    <div>
+        <h2>Institution Admin Requests</h2>
+        <p>Approve or reject pending Institution Administrator registrations.</p>
+    </div>
+</div>
+
+<div class="request-card">
+
+    <div class="toolbar">
+        <input
+            type="text"
+            id="searchBox"
+            placeholder="🔍 Search name, username, email or institution...">
+    </div>
+
+    {% if requests %}
+
+    <div class="table-responsive">
+
+        <table id="requestTable">
+
+            <thead>
+
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Institution</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+            {% for request in requests %}
+
+                <tr>
+
+                    <td>{{ request.id }}</td>
+
+                    <td>
+                        {{ request.first_name }}
+                        {{ request.last_name }}
+                    </td>
+
+                    <td>{{ request.username }}</td>
+
+                    <td>{{ request.email or "-" }}</td>
+
+                    <td>
+                        {% if request.institution %}
+                            {{ request.institution.name }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        <span class="badge">
+                            Pending Approval
+                        </span>
+                    </td>
+
+                    <td>
+
+                        <div class="action-buttons">
+
+                            <form method="POST"
+                                  action="{{ url_for('approve_institution_admin', user_id=request.id) }}">
+
+                                <button
+                                    class="btn btn-success"
+                                    onclick="return confirm('Approve this Institution Administrator?')">
+
+                                    ✔ Approve
+
+                                </button>
+
+                            </form>
+
+                            <form method="POST"
+                                  action="{{ url_for('reject_institution_admin', user_id=request.id) }}">
+
+                                <button
+                                    class="btn btn-danger"
+                                    onclick="return confirm('Reject this Institution Administrator?')">
+
+                                    ✖ Reject
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+        <div class="empty-state">
+
+            <h3>No Pending Requests</h3>
+
+            <p>There are currently no Institution Administrator requests awaiting approval.</p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+<script>
+
+const searchBox=document.getElementById("searchBox");
+
+if(searchBox){
+
+searchBox.addEventListener("keyup",function(){
+
+const value=this.value.toLowerCase();
+
+document.querySelectorAll("#requestTable tbody tr").forEach(function(row){
+
+row.style.display=row.innerText.toLowerCase().includes(value)?"":"none";
+
+});
+
+});
+
+}
+
+</script>
+
+{% endblock %}

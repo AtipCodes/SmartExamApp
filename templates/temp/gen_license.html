@@ -1,0 +1,17 @@
+﻿{% extends 'base.html' %}
+{% block title %} License {% endblock %}
+{% block content %}
+
+        <h2>Generate License</h2>
+        <form method="post">
+            <label>Number of keys:</label>
+            <input type="number" name="count" value="1" min="1"><br>
+            <label>Validity Period (days):</label>
+            <input type="number" name="period" value="365" min="1"><br>
+            <label>Email:</label>
+            <input type="email" name="email" required><br>
+            <button type="submit">Generate</button>
+        </form>
+        <a href="{{ url_for('dashboard') }}">Back</a>
+
+{% endblock %}

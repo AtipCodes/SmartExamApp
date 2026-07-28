@@ -1,0 +1,11 @@
+<h2>{{ subject.name }}</h2>
+
+<a href="{{ url_for('start', subject_id=subject.id) }}">
+    Start Objective Exam
+</a>
+
+<br><br>
+
+<a href="{{ url_for('start_theory', subject_id=subject.id) }}">
+    Start Theory Exam
+</a>

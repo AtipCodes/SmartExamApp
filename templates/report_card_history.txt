@@ -1,0 +1,37 @@
+<h2>Report History</h2>
+
+<table border="1">
+
+<tr>
+
+<th>Date</th>
+
+<th>Role</th>
+
+<th>Name</th>
+
+<th>Action</th>
+
+<th>Details</th>
+
+</tr>
+
+{% for h in history %}
+
+<tr>
+
+<td>{{ h.created_at }}</td>
+
+<td>{{ h.role_type }}</td>
+
+<td>{{ h.actor_name }}</td>
+
+<td>{{ h.action }}</td>
+
+<td>{{ h.details }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>

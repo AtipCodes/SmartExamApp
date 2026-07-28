@@ -1,0 +1,221 @@
+﻿{% extends 'base.html' %}
+{% block title %}Login / Register{% endblock %}
+
+{% block content %}
+
+<div class="login-wrapper">
+    <div class="login-card">
+
+        <h2>Login</h2>
+
+        <form method="post" class="login-form">
+            <input type="hidden" name="action" value="login">
+
+            <div>
+                <label>
+                    Username
+                    <input
+                        type="text"
+                        name="username"
+                        required
+                    >
+                </label>
+            </div>
+
+            <div>
+                <label>
+                    Password
+                    <input
+                        type="password"
+                        name="password"
+                        required
+                    >
+                </label>
+            </div>
+
+            <button class="btn">
+                Login
+            </button>
+        </form>
+
+        <p>
+            <a
+                href="{{ url_for('reset_password_request') }}"
+                class="forgot-link"
+            >
+                🔑 Forgot Password? (Admin/Licensing only)
+            </a>
+        </p>
+
+        <p>
+            <a
+                href="{{ url_for('owner_recovery_request') }}"
+                class="forgot-link"
+            >
+                Forgot Admin/Licenser Access?
+            </a>
+        </p>
+
+        <hr>
+
+        <h2>Student Registration</h2>
+
+        <form method="post" class="login-form">
+
+            <input
+                type="hidden"
+                name="action"
+                value="register"
+            >
+
+            <div>
+                <label>
+                    First Name
+                    <input
+                        type="text"
+                        name="first_name"
+                        required
+                    >
+                </label>
+            </div>
+
+            <div>
+                <label>
+                    Surname
+                    <input
+                        type="text"
+                        name="last_name"
+                        required
+                    >
+                </label>
+            </div>
+
+            <div>
+                <label>
+                    Email (optional)
+                    <input
+                        type="email"
+                        name="email"
+                    >
+                </label>
+            </div>
+
+			<div class="institution-picker">
+				<label>
+					Institution
+				</label>
+				<input
+					type="text"
+					id="institution_search"
+					placeholder="Search institution..."
+					autocomplete="off"
+				>
+				<input
+					type="hidden"
+					name="institution_id"
+					id="institution_id"
+					required
+				>
+				<div
+					id="institution_results"
+					class="institution-results"
+				></div>
+			</div>
+
+            <div>
+                <label>
+                    Username
+                    <input
+                        type="text"
+                        name="username"
+                        required
+                    >
+                </label>
+            </div>
+
+            <div>
+                <label>
+                    Password
+                    <input
+                        type="password"
+                        name="password"
+                        required
+                    >
+                </label>
+            </div>
+
+            <button class="btn">
+                Register
+            </button>
+
+        </form>
+
+    </div>
+</div>
+
+<style>
+
+.login-wrapper{
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    height:100vh;
+    padding-right:5%;
+    background:#f7f9fc;
+}
+
+.login-card{
+    background:#fff;
+    padding:2em;
+    border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,.10);
+    width:33%;
+    max-width:400px;
+    min-width:280px;
+    text-align:right;
+}
+
+.login-form{
+    display:flex;
+    flex-direction:column;
+    gap:.8em;
+}
+
+.login-form input,
+.login-form select{
+    width:100%;
+    padding:8px;
+    border:1px solid #ddd;
+    border-radius:6px;
+    margin-top:3px;
+    box-sizing:border-box;
+}
+
+.btn{
+    padding:10px;
+    border:none;
+    border-radius:6px;
+    background:#007bff;
+    color:#fff;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.btn:hover{
+    background:#0056b3;
+}
+
+.forgot-link{
+    color:#888;
+    text-decoration:none;
+    font-size:.9em;
+}
+
+.forgot-link:hover{
+    color:#007bff;
+    text-decoration:underline;
+}
+
+</style>
+
+{% endblock %}

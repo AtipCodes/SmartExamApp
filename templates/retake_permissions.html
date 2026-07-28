@@ -1,0 +1,956 @@
+{% extends "base.html" %}
+
+{% block title %}
+Retake Permissions
+{% endblock %}
+
+{% block content %}
+
+<h2>🔄 Retake Permissions</h2>
+
+<div class="retake-layout">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+
+<!-- ========================================= -->
+<!-- SEARCH STUDENT -->
+<!-- ========================================= -->
+
+<div class="card">
+
+    <h3>Search Student</h3>
+
+	<input
+		id="studentSearch"
+		type="text"
+		placeholder="Search students..."
+		style="width:350px;padding:10px;">
+
+</div>
+
+<hr>
+
+<div class="card">
+
+    <h3>Students</h3>
+
+    {% if students %}
+
+        <div class="student-list">
+
+            {% for s in students %}
+
+				 <a
+					class="student-link {% if student and student.id == s.id %}active{% endif %}"
+					data-name="{{ (s.first_name ~ ' ' ~ s.last_name ~ ' ' ~ s.username)|lower }}"
+					href="{{ url_for(
+						'retake_permissions',
+						student_id=s.id,
+						search=search
+					) }}">
+
+                    {{ s.first_name }}
+                    {{ s.last_name }}
+
+                </a>
+
+            {% endfor %}
+
+        </div>
+
+    {% else %}
+
+        <p>No students found.</p>
+
+    {% endif %}
+
+</div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+
+    <div class="right-panel">
+
+{% if student %}
+
+<hr>
+
+<!-- ========================================= -->
+<!-- STUDENT INFORMATION -->
+<!-- ========================================= -->
+
+<div class="card">
+
+    <h3>👤 Student Information</h3>
+
+    <table class="info-table">
+
+        <tr>
+
+            <td><strong>Name</strong></td>
+
+            <td>
+
+                {{ student.first_name }}
+                {{ student.last_name }}
+
+            </td>
+
+        </tr>
+
+        <tr>
+
+            <td><strong>Username</strong></td>
+
+            <td>
+
+                {{ student.username }}
+
+            </td>
+
+        </tr>
+		
+		<tr>
+
+			<td><strong>Class</strong></td>
+
+			<td>
+
+				{{ student.class_name or "-" }}
+
+			</td>
+
+		</tr>				
+
+    </table>
+
+</div>
+
+<hr>
+
+<!-- ========================================= -->
+<!-- SUBJECTS TAKEN -->
+<!-- ========================================= -->
+
+<div class="card">
+
+    <h3>📚 Subjects Taken</h3>
+
+    {% if subjects %}
+
+		<table class="subject-table">
+
+		<thead>
+
+		<tr>
+
+			<th width="50">#</th>
+
+			<th>Subject</th>
+
+			<th width="140">Type</th>
+
+			<th width="120">Action</th>
+
+		</tr>
+
+		</thead>
+
+        {% for subject in subjects %}
+
+        <tr
+            {% if selected_subject and selected_subject.id == subject.id %}
+                class="selected-row"
+            {% endif %}
+        >
+
+            <td width="50">
+
+                {{ loop.index }}.
+
+            </td>
+
+            <td>
+
+                {{ subject.name }}
+
+            </td>
+			
+			<td>
+
+				{% if subject.result_type == "exam" %}
+
+					<span class="badge badge-exam">
+
+						Exam
+
+					</span>
+
+				{% elif subject.result_type == "ca" %}
+
+					<span class="badge badge-ca">
+
+						Continuous Assessment
+
+					</span>
+
+				{% elif subject.result_type == "practice" %}
+
+					<span class="badge badge-practice">
+
+						Practice
+
+					</span>
+
+				{% else %}
+
+					<span class="badge badge-other">
+
+						{{ subject.result_type or "-" }}
+
+					</span>
+
+				{% endif %}
+				
+				{% if subject.label %}
+
+				<div class="subject-label">
+
+					{{ subject.label }}
+
+				</div>
+
+				{% endif %}				
+
+			</td>			
+
+            <td width="120">
+
+                <a
+                    class="btn btn-primary btn-sm"
+
+                    href="{{ url_for(
+                        'retake_permissions',
+                        student_id=student.id,
+                        subject_id=subject.id,
+                        search=search
+                    ) }}">
+
+                    Manage
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    {% else %}
+
+        <p>
+
+            No submitted subjects found.
+
+        </p>
+
+    {% endif %}
+
+</div>
+
+{% if selected_subject %}
+
+<hr>
+
+<div class="card">
+
+    <h3>🔄 Retake Permissions</h3>
+
+    <p>
+
+	<p>
+
+	<strong>Subject:</strong>
+
+	{{ selected_subject.name }}
+
+	</p>
+
+	<p>
+
+	<strong>Type:</strong>
+
+	{{ selected_subject.result_type|upper }}
+
+	</p>
+
+	{% if selected_subject.label %}
+
+	<p>
+
+	<strong>Label:</strong>
+
+	{{ selected_subject.label }}
+
+	</p>
+
+	{% endif %}
+
+    </p>
+
+    <table class="subject-table">
+
+        <thead>
+
+            <tr>
+
+                <th>Assessment</th>
+
+                <th>Status</th>
+
+                <th width="220">Action</th>
+
+            </tr>
+
+        </thead>
+
+		<tbody>
+
+			{# ==========================================
+			   EXAM
+			   ========================================== #}
+
+			{% if selected_subject.result_type == "exam" %}
+
+			<!-- Objective -->
+
+			<tr>
+
+				<td>
+					Objective
+				</td>
+
+				<td>
+
+					{% if result %}
+
+						{% if result.can_retake %}
+
+							<span style="color:green;font-weight:bold;">
+								✅ Enabled
+							</span>
+
+						{% else %}
+
+							<span style="color:red;font-weight:bold;">
+								❌ Disabled
+							</span>
+
+						{% endif %}
+
+						<br><br>
+
+						<strong>Retakes Used:</strong>
+
+						{{ result.retake_count or 0 }}
+
+						{% if result.retake_admin %}
+
+							<br><br>
+
+							<strong>
+
+								{% if result.can_retake %}
+									Granted By:
+								{% else %}
+									Last Granted By:
+								{% endif %}
+
+							</strong>
+
+							{{ result.retake_admin.first_name }}
+							{{ result.retake_admin.last_name }}
+
+							<br>
+
+							<strong>
+
+								{% if result.can_retake %}
+									Granted On:
+								{% else %}
+									Last Granted On:
+								{% endif %}
+
+							</strong>
+
+							{% if result.retake_granted_at %}
+
+								{{ result.retake_granted_at.strftime("%d %b %Y %I:%M %p") }}
+
+							{% endif %}
+
+						{% endif %}
+
+					{% else %}
+
+						<span style="color:#888">
+							No Result
+						</span>
+
+					{% endif %}
+
+				</td>
+
+				<td>
+
+					{% if result %}
+
+					<form
+						method="POST"
+						action="{{ url_for('toggle_retake_permission') }}">
+
+						<input
+							type="hidden"
+							name="student_id"
+							value="{{ student.id }}">
+
+						<input
+							type="hidden"
+							name="subject_id"
+							value="{{ selected_subject.id }}">
+
+
+
+						{% if result.can_retake %}
+
+							<button
+								class="btn btn-danger btn-sm">
+
+								Disable Retake
+
+							</button>
+
+						{% else %}
+
+							<button
+								class="btn btn-success btn-sm">
+
+								Enable Retake
+
+							</button>
+
+						{% endif %}
+
+					</form>
+
+					{% endif %}
+
+				</td>
+
+			</tr>
+
+			<!-- Theory -->
+
+			<tr>
+
+				<td>
+
+					Theory
+
+				</td>
+
+				<td>
+
+					{% if theory_submission %}
+
+						{% if theory_submission.can_retake %}
+
+							<span style="color:green;font-weight:bold;">
+								✅ Enabled
+							</span>
+
+						{% else %}
+
+							<span style="color:red;font-weight:bold;">
+								❌ Disabled
+							</span>
+
+						{% endif %}
+
+						<br><br>
+
+						<strong>Retakes Used:</strong>
+
+						{{ theory_submission.retake_count or 0 }}
+
+					{% else %}
+
+						<span style="color:#888">
+							No Submission
+						</span>
+
+					{% endif %}
+
+				</td>
+
+				<td>
+
+					{% if theory_submission %}
+
+				<form
+					method="POST"
+					action="{{ url_for('toggle_retake_permission') }}">
+
+					<input
+						type="hidden"
+						name="student_id"
+						value="{{ student.id }}">
+
+					<input
+						type="hidden"
+						name="subject_id"
+						value="{{ selected_subject.id }}">
+
+					<input
+						type="hidden"
+						name="assessment"
+						value="theory">
+
+					{% if theory_submission.can_retake %}
+
+						<button class="btn btn-danger btn-sm">
+							Disable Retake
+						</button>
+
+					{% else %}
+
+						<button class="btn btn-success btn-sm">
+							Enable Retake
+						</button>
+
+					{% endif %}
+
+				</form>
+
+					{% endif %}
+
+				</td>
+
+			</tr>
+
+			{# ==========================================
+			   CA
+			   ========================================== #}
+
+			{% elif selected_subject.result_type == "ca" %}
+
+			<tr>
+
+				<td>
+
+					{% set label_upper = (selected_subject.label or "")|upper %}
+
+					{% if "1ST" in label_upper %}
+						CA 1
+					{% elif "2ND" in label_upper %}
+						CA 2
+					{% elif "3RD" in label_upper %}
+						CA 3
+					{% else %}
+						Continuous Assessment
+					{% endif %}
+
+				</td>
+
+				<td>
+
+					{% if result %}
+
+						{% if result.can_retake %}
+
+							<span style="color:green;font-weight:bold;">
+								✅ Enabled
+							</span>
+
+						{% else %}
+
+							<span style="color:red;font-weight:bold;">
+								❌ Disabled
+							</span>
+
+						{% endif %}
+
+					{% else %}
+
+						<span style="color:#888">
+							No Result
+						</span>
+
+					{% endif %}
+
+				</td>
+
+				<td>
+
+					{% if result %}
+
+					<form
+						method="POST"
+						action="{{ url_for('toggle_retake_permission') }}">
+
+						<input
+							type="hidden"
+							name="student_id"
+							value="{{ student.id }}">
+
+						<input
+							type="hidden"
+							name="subject_id"
+							value="{{ selected_subject.id }}">
+
+
+						{% if result.can_retake %}
+
+							<button class="btn btn-danger btn-sm">
+								Disable Retake
+							</button>
+
+						{% else %}
+
+							<button class="btn btn-success btn-sm">
+								Enable Retake
+							</button>
+
+						{% endif %}
+
+					</form>
+
+					{% endif %}
+
+				</td>
+
+			</tr>
+
+			{# ==========================================
+			   PRACTICE
+			   ========================================== #}
+
+			{% elif selected_subject.result_type == "practice" %}
+
+			<tr>
+
+				<td>
+
+					Practice
+
+				</td>
+
+				<td>
+
+					{% if result %}
+
+						{% if result.can_retake %}
+
+							<span style="color:green;font-weight:bold;">
+								✅ Enabled
+							</span>
+
+						{% else %}
+
+							<span style="color:red;font-weight:bold;">
+								❌ Disabled
+							</span>
+
+						{% endif %}
+
+					{% else %}
+
+						<span style="color:#888">
+							No Result
+						</span>
+
+					{% endif %}
+
+				</td>
+
+				<td>
+
+					{% if result %}
+
+					<form
+						method="POST"
+						action="{{ url_for('toggle_retake_permission') }}">
+
+						<input
+							type="hidden"
+							name="student_id"
+							value="{{ student.id }}">
+
+						<input
+							type="hidden"
+							name="subject_id"
+							value="{{ selected_subject.id }}">
+
+
+
+						{% if result.can_retake %}
+
+							<button class="btn btn-danger btn-sm">
+								Disable Retake
+							</button>
+
+						{% else %}
+
+							<button class="btn btn-success btn-sm">
+								Enable Retake
+							</button>
+
+						{% endif %}
+
+					</form>
+
+					{% endif %}
+
+				</td>
+
+			</tr>
+
+			{% endif %}
+
+		</tbody>
+
+    </table>
+
+</div>
+
+{% endif %}
+
+{% endif %}
+
+<style>
+
+.card{
+
+    background:white;
+
+    padding:24px;
+
+    border-radius:12px;
+
+    margin-bottom:24px;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+
+}
+
+table{
+    border-collapse:collapse;
+}
+
+td{
+    padding:8px 15px;
+}
+
+.subject-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.subject-table td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
+
+.subject-table tr:hover{
+    background:#f8fafc;
+}
+
+.selected-row{
+    background:#dbeafe !important;
+}
+
+.btn-sm{
+    padding:7px 15px;
+    font-size:14px;
+}
+
+.student-list{
+
+    height:650px;
+
+    overflow-y:auto;
+
+    border:1px solid #ddd;
+
+    border-radius:8px;
+
+    background:white;
+
+}
+
+.student-link{
+
+    display:block;
+
+    padding:12px;
+
+    text-decoration:none;
+
+    color:#333;
+
+    border-bottom:1px solid #eee;
+
+}
+
+.student-link:hover{
+
+    background:#f5f8ff;
+
+}
+
+.student-link.active{
+
+    background:#2563eb;
+
+    color:white;
+
+    font-weight:bold;
+
+}
+
+.retake-layout{
+
+    display:flex;
+
+    gap:20px;
+
+    align-items:flex-start;
+
+}
+
+.left-panel{
+
+    width:320px;
+
+    flex-shrink:0;
+
+}
+
+.right-panel{
+
+    flex:1;
+
+    min-width:0;
+
+}
+
+.info-table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+.info-table td{
+
+    padding:10px 8px;
+
+    border-bottom:1px solid #f0f0f0;
+
+}
+
+.info-table tr:last-child td{
+
+    border-bottom:none;
+
+}
+
+.badge{
+
+    display:inline-block;
+
+    padding:4px 10px;
+
+    border-radius:20px;
+
+    font-size:12px;
+
+    font-weight:600;
+
+    color:white;
+
+}
+
+.badge-exam{
+
+    background:#16a34a;
+
+}
+
+.badge-ca{
+
+    background:#f59e0b;
+
+}
+
+.badge-practice{
+
+    background:#2563eb;
+
+}
+
+.badge-other{
+
+    background:#6b7280;
+
+}
+
+.subject-label{
+
+    margin-top:6px;
+
+    font-size:12px;
+
+    color:#666;
+
+    line-height:1.3;
+
+}
+
+</style>
+
+<script>
+
+const search = document.getElementById("studentSearch");
+
+const students = document.querySelectorAll(".student-link");
+
+search.addEventListener("input", function(){
+
+    const value = this.value.toLowerCase().trim();
+
+    students.forEach(function(student){
+
+        if(
+            student.dataset.name.includes(value)
+        ){
+            student.style.display = "block";
+        }
+        else{
+            student.style.display = "none";
+        }
+
+    });
+
+});
+
+</script>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,87 @@
+﻿{% extends 'base.html' %}
+{% block title %} Chat View {% endblock %}
+{% block content %}
+
+        <h2>Admin License Request</h2>
+		<hr>			
+		<form method="post">
+
+			<div style="
+				background:#fff3cd;
+				border:2px solid #ffc107;
+				border-radius:8px;
+				padding:12px;
+				margin:15px 0;
+			">
+
+				<label style="
+					font-weight:bold;
+					font-size:18px;
+					color:#856404;
+					cursor:pointer;
+				">
+
+					<input
+						type="checkbox"
+						name="auto_license"
+						id="auto_license"
+						style="
+							transform:scale(1.4);
+							margin-right:8px;
+						"
+					>
+
+					⚡ Request Auto Licensing
+
+				</label>
+
+			</div>
+
+			<label>Number of Licenses:</label>
+			<input type="number" name="num" min="1" required>
+
+			<br><br>
+
+			<label>Duration (days):</label>
+			<input type="number" name="duration" value="365" required>
+
+			<br><br>
+
+			<label>Email Address:</label>
+			<input type="email" name="email" value="@abc.com" required>
+
+			<br><br>
+
+			<label>Phone Number:</label>
+			<input type="tel" name="phone" value="+1" required>
+
+			<br><br>
+
+			<button type="submit">
+				Submit Request
+			</button>
+
+		</form>
+        <a href="{{ url_for('dashboard') }}">Cancel</a>
+		
+		<div style="margin-top:20px;">
+			<hr>
+
+			<h4>Activate Auto Licensing</h4>
+
+			<form method="POST"
+				  action="{{ url_for('activate_auto_license') }}">
+
+				<label>Activation Key:</label>
+				<input type="text"
+					   name="key"
+					   required>
+
+				<button type="submit">
+					Activate
+				</button>
+
+			</form>			
+		</div>
+
+{% endblock %}

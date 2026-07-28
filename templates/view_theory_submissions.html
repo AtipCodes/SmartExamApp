@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}View Theory Submission{% endblock %}
+
+{% block content %}
+<h2>Theory Submissions</h2>
+<table>
+<tr>
+    <th>Student</th>
+    <th>Answers</th>
+    <th>Score</th>
+    <th>Action</th>
+</tr>
+{% for sub in submissions %}
+<tr>
+    <td>{{ sub.user.username }}</td>
+	<td class="answers-cell">
+
+	{% for qid, a in sub.answers.items() %}
+
+		<div class="answer-box">
+
+			<div class="answer-title">
+				<strong>Question {{ loop.index }}</strong>
+			</div>
+
+			<div class="answer-text">
+				{{ a.text or "No answer submitted." }}
+			</div>
+
+			{% if a.file_path %}
+
+				<div class="answer-image">
+
+					<img
+						src="{{ url_for('static',
+						filename='uploads/' ~ a.file_path) }}"
+						class="preview-image">
+
+					<br>
+
+					<a
+						href="{{ url_for('static',
+						filename='uploads/' ~ a.file_path) }}"
+						target="_blank">
+
+						📎 Open Full Size
+
+					</a>
+
+				</div>
+
+			{% endif %}
+
+		</div>
+
+	{% endfor %}
+
+	</td>
+    <td>{{ sub.score or '' }}</td>
+    <td><a href="{{ url_for('score_theory', submission_id=sub.id) }}">Score</a></td>
+</tr>
+{% endfor %}
+</table>
+
+<style>
+.answers-cell{
+    min-width:420px;
+}
+
+.answer-box{
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:12px;
+    margin-bottom:15px;
+    background:#fafafa;
+}
+
+.answer-title{
+    color:#2563eb;
+    margin-bottom:8px;
+}
+
+.answer-text{
+    white-space:pre-wrap;
+    margin-bottom:10px;
+}
+
+.preview-image{
+    max-width:220px;
+    max-height:180px;
+    border-radius:6px;
+    border:1px solid #ccc;
+    display:block;
+    margin-bottom:8px;
+}
+
+.info-box{
+    background:#f8fafc;
+    border:1px solid #dbeafe;
+    padding:18px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+.answer-card{
+    background:white;
+    border:1px solid #ddd;
+    border-left:5px solid #2563eb;
+    border-radius:10px;
+    padding:18px;
+    margin-bottom:20px;
+}
+
+.answer-card h4{
+    margin-top:0;
+    color:#2563eb;
+}
+
+.answer-text{
+    white-space:pre-wrap;
+    margin:15px 0;
+    line-height:1.7;
+}
+
+.preview-image{
+    max-width:350px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    margin-top:10px;
+}
+
+</style>
+
+{% endblock %}

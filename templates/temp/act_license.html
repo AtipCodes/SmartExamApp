@@ -1,0 +1,13 @@
+﻿{% extends 'base.html' %}
+{% block title %} Chat View {% endblock %}
+{% block content %}
+
+        <h2>Activate License</h2>
+        <form method="post">
+          <label>Enter License Key:</label>
+          <input type="text" name="key" required>
+          <button type="submit">Activate</button>
+        </form>
+        <a href="{{ url_for('dashboard') }}">Back</a>
+
+{% endblock %}

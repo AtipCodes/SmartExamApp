@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Edit Theory Question{% endblock %}
+
+{% block content %}
+<h2>Edit Theory Question</h2>
+
+<form method="POST">
+    <textarea name="prompt" rows="4" style="width:100%;">{{ q.prompt }}</textarea><br><br>
+    <input type="text" name="answer" value="{{ q.answer }}" placeholder="Answer"><br><br>
+    <button class="btn">Update</button>
+</form>
+
+{% endblock %}

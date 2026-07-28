@@ -1,0 +1,481 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<style>
+
+.container{
+    max-width: 1100px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+h2{
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+label{
+    font-weight: bold;
+    display: block;
+    margin-top: 10px;
+}
+
+input{
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    box-sizing: border-box;
+}
+
+input[type="file"]{
+    padding: 5px;
+}
+
+button{
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    background: green;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover{
+    background: darkgreen;
+}
+
+.preview{
+    margin-top: 5px;
+}
+
+.preview img{
+    height: 60px;
+    border: 1px solid #ccc;
+    padding: 3px;
+}
+
+.section{
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.flash{
+    background: #d4edda;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    color: #155724;
+}
+
+</style>
+
+<div class="container">
+
+<h2>School Settings</h2>
+
+<!-- ================= FLASH MESSAGE ================= -->
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash">
+      {{ messages[0] }}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<form method="POST" enctype="multipart/form-data">
+
+<!-- ================= SCHOOL INFO ================= -->
+<div class="section">
+<h3>🏫 School Information</h3>
+<label>School Name</label>
+<input type="text" name="name"
+value="{{ settings.name if settings else '' }}">
+
+<label>Address</label>
+<input type="text" name="address"
+value="{{ settings.address if settings else '' }}">
+
+<label>Phone</label>
+<input type="text" name="phone"
+value="{{ settings.phone if settings else '' }}">
+
+<label>Term</label>
+<input type="text" name="term"
+value="{{ settings.term if settings else '' }}">
+
+<label>Session</label>
+<input type="text" name="session"
+value="{{ settings.session if settings else '' }}">
+
+<label>Next Term Begins</label>
+<input type="text" name="next_term_begins"
+value="{{ settings.next_term_begins if settings else '' }}">
+
+</div>
+
+<div class="section">
+
+<h3>🎓 Academic Configuration</h3>
+
+<label>Institution Type</label>
+
+<select name="academic_mode">
+
+    <option value="secondary"
+        {% if settings and settings.academic_mode == "secondary" %}
+        selected
+        {% endif %}>
+        Secondary School
+    </option>
+
+    <option value="university"
+        {% if settings and settings.academic_mode == "university" %}
+        selected
+        {% endif %}>
+        University / Polytechnic
+    </option>
+
+    <option value="training"
+        {% if settings and settings.academic_mode == "training" %}
+        selected
+        {% endif %}>
+        Training Centre / Company
+    </option>
+
+</select>
+
+<label>Grading Scale</label>
+
+<select name="grading_scale">
+
+    <option value="percentage"
+        {% if settings and settings.grading_scale == "percentage" %}
+        selected
+        {% endif %}>
+        Percentage (100%)
+    </option>
+
+    <option value="gpa4"
+        {% if settings and settings.grading_scale == "gpa4" %}
+        selected
+        {% endif %}>
+        GPA (4.0)
+    </option>
+
+    <option value="cgpa5"
+        {% if settings and settings.grading_scale == "cgpa5" %}
+        selected
+        {% endif %}>
+        CGPA (5.0)
+    </option>
+
+</select>
+
+<label>Default Report Design</label>
+
+<select name="default_report_design">
+
+{% for design in [
+    "standard.html",
+    "modern.html",
+    "classic.html",
+    "minimal.html",
+    "blue.html",
+    "gold.html"
+] %}
+
+<option value="{{ design }}"
+{% if settings and settings.default_report_design == design %}
+selected
+{% endif %}
+>
+
+{{ design }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</div>
+
+
+<div class="section">
+
+<h3>📊 Score Allocation (%)</h3>
+
+<label>CA 1</label>
+<input
+    type="number"
+    min="0"
+    max="100"
+    step="0.01"
+    id="ca1_percentage"
+    name="ca1_percentage"
+    value="{{ settings.ca1_percentage if settings else 0 }}">
+
+<label>CA 2</label>
+<input
+    type="number"
+    min="0"
+    max="100"
+    step="0.01"
+    id="ca2_percentage"
+    name="ca2_percentage"
+    value="{{ settings.ca2_percentage if settings else 0 }}">
+
+<label>CA 3</label>
+<input
+    type="number"
+    min="0"
+    max="100"
+    step="0.01"
+    id="ca3_percentage"
+    name="ca3_percentage"
+    value="{{ settings.ca3_percentage if settings else 0 }}">
+
+<label>Objective Exam</label>
+<input
+    type="number"
+    min="0"
+    max="100"
+    step="0.01"
+    id="objective_percentage"
+    name="objective_percentage"
+    value="{{ settings.objective_percentage if settings else 0 }}">
+
+<label>Theory Exam</label>
+<input
+    type="number"
+    min="0"
+    max="100"
+    step="0.01"
+    id="theory_percentage"
+    name="theory_percentage"
+    value="{{ settings.theory_percentage if settings else 0 }}">
+
+<span id="percentage_total">
+
+</div>
+
+<!-- ================= FILE UPLOADS ================= -->
+<div class="section">
+
+<h3>🖼 Branding</h3>
+
+<label>School Logo</label>
+<input type="file" name="logo">
+<small style="color:#777;">
+PNG recommended.
+Transparent background gives the best appearance.
+</small>
+
+{% if settings and settings.logo_path %}
+<div class="preview">
+    <img
+        src="{{ url_for('static', filename=settings.logo_path) }}"
+        style="
+            max-height:90px;
+            max-width:180px;
+            border:1px solid #ddd;
+            padding:5px;
+            background:#fff;
+            border-radius:6px;
+        ">
+</div>
+{% endif %}
+
+<label>Background Watermark</label>
+<input type="file" name="background">
+<small style="color:#777;">
+Use a light watermark background for printing.
+</small>
+
+{% if settings and settings.background_path %}
+<div class="preview">
+    <img
+        src="{{ url_for('static', filename=settings.background_path) }}"
+        style="
+            max-height:90px;
+            max-width:180px;
+            border:1px solid #ddd;
+            padding:5px;
+            background:#fff;
+            border-radius:6px;
+        ">
+</div>
+{% endif %}
+
+<label>Principal Signature</label>
+<input type="file" name="principal_signature">
+
+{% if settings and settings.principal_signature_path %}
+<div class="preview">
+    <img
+        src="{{ url_for('static', filename=settings.principal_signature_path) }}"
+        style="
+            max-height:90px;
+            max-width:180px;
+            border:1px solid #ddd;
+            padding:5px;
+            background:#fff;
+            border-radius:6px;
+        ">
+</div>
+{% endif %}
+
+</div>
+
+<div class="section">
+<h3>⚙ Report Display Options</h3>
+
+<label>
+    <input
+        type="checkbox"
+        name="show_student_position"
+        {% if settings and settings.show_student_position %}checked{% endif %}>
+    Show Student Position
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_class_average"
+        {% if settings and settings.show_class_average %}checked{% endif %}>
+    Show Class Average
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_class_size"
+        {% if settings and settings.show_class_size %}checked{% endif %}>
+    Show Class Size
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_gpa"
+        {% if settings and settings.show_gpa %}checked{% endif %}>
+    Show GPA
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_cgpa"
+        {% if settings and settings.show_cgpa %}checked{% endif %}>
+    Show CGPA
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_attendance"
+        {% if settings and settings.show_attendance %}checked{% endif %}>
+    Show Attendance
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_psychomotor"
+        {% if settings and settings.show_psychomotor %}checked{% endif %}>
+    Show Psychomotor Section
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_teacher_comment"
+        {% if settings and settings.show_teacher_comment %}checked{% endif %}>
+    Show Teacher Comment
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_principal_comment"
+        {% if settings and settings.show_principal_comment %}checked{% endif %}>
+    Show Principal Comment
+</label>
+
+
+<label>
+    <input
+        type="checkbox"
+        name="show_next_term"
+        {% if settings and settings.show_next_term %}checked{% endif %}>
+    Show Next Term Begins
+</label>
+
+</div>
+
+<!-- ================= SUBMIT ================= -->
+
+<button type="submit">
+    Save Settings
+</button>
+
+</form>
+
+</div>
+<script>
+
+function updatePercentageTotal(){
+
+    let total =
+        Number(document.getElementById("ca1_percentage").value || 0)
+      + Number(document.getElementById("ca2_percentage").value || 0)
+      + Number(document.getElementById("ca3_percentage").value || 0)
+      + Number(document.getElementById("objective_percentage").value || 0)
+      + Number(document.getElementById("theory_percentage").value || 0);
+
+    const totalSpan =
+        document.getElementById("percentage_total");
+
+    totalSpan.innerText = total.toFixed(2);
+
+    if(total === 100){
+
+        totalSpan.style.color = "green";
+
+    }else{
+
+        totalSpan.style.color = "red";
+
+    }
+
+}
+
+document.querySelectorAll(
+    "#ca1_percentage,#ca2_percentage,#ca3_percentage,#objective_percentage,#theory_percentage"
+).forEach(function(input){
+
+    input.addEventListener(
+        "input",
+        updatePercentageTotal
+    );
+
+});
+
+updatePercentageTotal();
+
+</script>
+
+{% endblock %}

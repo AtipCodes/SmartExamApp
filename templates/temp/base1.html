@@ -1,0 +1,290 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>{{ title or 'Exam App' }}</title>
+
+<style>
+body { font-family: system-ui, Arial, sans-serif; margin:0; background:#f9fafb; }
+
+/* Sidebar */
+.sidebar {
+    width:260px;
+    background:#007BFF;
+    color:white;
+    height:100vh;
+    position:fixed;
+    top:0;
+    left:0;
+    transition:transform .3s ease-in-out;
+    z-index:1000;
+}
+
+.sidebar.closed { transform:translateX(-260px); }
+
+.main {
+    margin-left:260px;
+    transition:margin-left .3s ease-in-out;
+}
+
+@media (max-width:768px){
+    .sidebar { transform:translateX(-260px); }
+    .sidebar.open { transform:translateX(0); }
+    .main { margin-left:0; }
+    .main.shifted { margin-left:260px; }
+}
+
+.sidebar h2{
+    font-size:1.25rem;
+    padding:16px;
+    font-weight:bold;
+    border-bottom:1px solid rgba(255,255,255,0.2);
+    display:flex;
+    justify-content:space-between;
+    color:white;
+}
+
+.sidebar nav a,
+.dropbtn{
+    display:block;
+    padding:10px 16px;
+    border-radius:6px;
+    margin:4px 8px;
+    text-decoration:none;
+    color:white;
+    background:none;
+    border:none;
+    text-align:left;
+    width:calc(100% - 16px);
+    cursor:pointer;
+    font-size:1rem;
+}
+
+.sidebar nav a:hover,
+.dropbtn:hover{ background:#0056b3; }
+
+/* Dropdown */
+.dropdown { position:relative; }
+
+.dropdown-content{
+    display:none;
+    background:#0056b3;
+    margin:0 8px;
+    border-radius:6px;
+    overflow:hidden;
+}
+
+.dropdown-content a{
+    padding:10px 16px;
+    display:block;
+    color:white;
+    font-size:1rem;
+}
+
+.dropdown-content a:hover{ background:#004494; }
+
+.dropdown.open .dropdown-content{
+    display:block;
+}
+
+/* Footer */
+.sidebar .footer{
+    padding:12px;
+    border-top:1px solid rgba(255,255,255,0.2);
+}
+
+.sidebar .footer a{
+    display:block;
+    padding:10px;
+    border-radius:6px;
+    color:white;
+    text-decoration:none;
+}
+
+.sidebar .footer a:hover{ background:#0056b3; }
+
+header{
+    background:white;
+    padding:12px 20px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    box-shadow:0 1px 3px rgba(0,0,0,0.1);
+    position:sticky;
+    top:0;
+    z-index:40;
+}
+
+header button{
+    font-size:1.5rem;
+    background:none;
+    border:none;
+    cursor:pointer;
+}
+
+.content{ padding:20px; }
+
+/* FLASH */
+.flash-container{ margin-bottom:15px; }
+
+.flash{
+    padding:12px 14px;
+    margin-bottom:10px;
+    border-radius:6px;
+    color:white;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    animation:fadeIn .3s ease;
+}
+
+.flash.success, .flash.ok { background:#28a745; }
+.flash.error { background:#dc3545; }
+.flash.warning { background:#ffc107; color:#000; }
+.flash.info { background:#007bff; }
+
+.flash button{
+    background:none;
+    border:none;
+    color:inherit;
+    font-size:16px;
+    cursor:pointer;
+}
+
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(-5px);}
+    to{opacity:1; transform:translateY(0);}
+}
+</style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar closed">
+<h2>
+Exam System
+<button style="background:none;border:none;color:white;font-size:1.5rem;" onclick="document.getElementById('menuToggle').click()">×</button>
+</h2>
+
+<nav>
+{% if user %}
+    <a href="{{ url_for('dashboard') }}">📊 Dashboard</a>
+
+    {% if user.role in ['admin','subadmin'] %}
+        {% if user.role == 'admin' %}
+            <a href="{{ url_for('manage_users') }}">🧑 Users</a>
+            <a href="{{ url_for('manage_groups') }}">👥 Groups</a>
+        {% endif %}
+
+        <a href="{{ url_for('manage_subjects') }}">📚 Subjects</a>
+        <a href="{{ url_for('upload_questions') }}">⬆️ Upload Questions</a>
+
+        <!-- ✅ DROPDOWN UPDATED -->
+        <div class="dropdown" id="exportDropdown">
+            <button class="dropbtn">📊 Results & Reports ▾</button>
+            <div class="dropdown-content">
+                <a href="{{ url_for('export_scores') }}">📊 Objective Results</a>
+                {% if user.role == 'admin' %}
+                    <a href="{{ url_for('theory_submissions') }}">📄 Theory Submissions</a>
+                    <a href="{{ url_for('report_card') }}">📝 Generate Report Cards</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% if user.role == 'admin' %}
+            <a href="{{ url_for('admin_chat_dashboard') }}">💬 Open Student Chats</a>
+            <a href="{{ url_for('admin_request_license') }}">🧑 License Request</a>
+        {% endif %}
+    {% endif %}
+{% endif %}
+</nav>
+
+<div class="footer">
+{% if not user %}
+    <a href="{{ url_for('login') }}">🔑 Login</a>
+{% else %}
+    <a href="{{ url_for('logout') }}" style="background:#dc2626;">🚪 Logout</a>
+{% endif %}
+</div>
+</aside>
+
+<div class="main">
+
+<header>
+<button id="menuToggle">☰</button>
+<h1>{{ title or "Exam App" }}</h1>
+</header>
+
+<div class="content">
+
+<!-- FLASH -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="flash-container">
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">
+                <span>{{ message }}</span>
+                <button onclick="this.parentElement.remove()">✖</button>
+            </div>
+        {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+
+</div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+/* FLASH AUTO CLOSE */
+setTimeout(() => {
+    document.querySelectorAll(".flash").forEach(f => {
+        f.style.opacity = "0";
+        setTimeout(() => f.remove(), 400);
+    });
+}, 4000);
+
+/* Sidebar */
+const sidebar = document.querySelector(".sidebar");
+const main = document.querySelector(".main");
+const toggleBtn = document.getElementById("menuToggle");
+
+if (window.innerWidth > 768) {
+    sidebar.classList.add("open");
+    sidebar.classList.remove("closed");
+    toggleBtn.style.display = "none";
+}
+
+toggleBtn.addEventListener("click", function () {
+    sidebar.classList.toggle("open");
+    sidebar.classList.toggle("closed");
+
+    if (window.innerWidth <= 768) {
+        main.classList.toggle("shifted");
+    }
+});
+
+/* Dropdown toggle */
+const dropdown = document.getElementById("exportDropdown");
+const dropBtn = dropdown.querySelector(".dropbtn");
+
+dropBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    dropdown.classList.toggle("open");
+});
+
+/* close when clicking outside */
+document.addEventListener("click", function(){
+    dropdown.classList.remove("open");
+});
+
+});
+</script>
+
+</body>
+</html>

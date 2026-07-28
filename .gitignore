@@ -1,0 +1,25 @@
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.log
+.env
+instance/
+.pytest_cache/
+.mypy_cache/
+.idea/
+.vscode/
+
+# User uploaded files
+uploads/
+
+# Database backups
+*.sql
+*.dump
+
+# Temporary files
+*.tmp
+*.bak
+old pys/
+backup/
+Others/

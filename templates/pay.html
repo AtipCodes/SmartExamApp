@@ -1,0 +1,20 @@
+﻿{% extends 'base.html' %}
+{% block title %} Chat View {% endblock %}
+{% block content %}
+
+    <h2>Payment Page</h2>
+    <p>You requested {{ num }} licenses for {{ duration }} days.</p>
+    <p><strong>Total Amount:</strong> ${{ amount }}</p>
+    <p>
+        <strong>
+            To Email: {{ email }}<br>
+            {% if u and u.email %}
+                {{ u.email }}
+            {% endif %}<br>
+            Phone: {{ phone }}
+        </strong>
+    </p>
+    <a href="https://airtm.me/tatro" target="_blank">Proceed to Pay</a>
+    <a href="{{ url_for('dashboard') }}">Cancel</a>
+
+{% endblock %}

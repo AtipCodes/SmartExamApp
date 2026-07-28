@@ -1,0 +1,261 @@
+﻿{% extends 'base.html' %}
+{% block title %}Export Scores{% endblock %}
+
+{% block content %}
+
+<h2>📤 Export Scores</h2>
+
+<!-- ================= Manual Range Form ================= -->
+
+<form method="get" style="margin-bottom:20px;">
+    <label>From:
+        <input type="date" name="start_date" value="{{ start }}">
+    </label>
+
+    <label>To:
+        <input type="date" name="end_date" value="{{ end }}">
+    </label>
+
+    <input type="hidden" name="export" value="0">
+
+    <!-- SHOW PREVIEW -->
+    <button type="submit" class="btn">
+        Show Preview
+    </button>
+
+    <!-- DOWNLOAD RANGE -->
+    <button type="submit" class="btn"
+        onclick="this.form.export.value=1;">
+        📥 Download Range
+    </button>
+</form>
+
+<!-- ================= Quick Export Buttons ================= -->
+
+<div style="margin-bottom:20px;">
+
+<form method="get" style="display:inline-block;margin-right:5px;">
+<input type="hidden" name="quick" value="today">
+<input type="hidden" name="export" value="1">
+<button class="btn">⚡ Quick Export (Today Only)</button>
+</form>
+
+<form method="get" style="display:inline-block;margin-right:5px;">
+<input type="hidden" name="quick" value="30">
+<input type="hidden" name="export" value="1">
+<button class="btn">⚡ Quick Export (Last 30 Days)</button>
+</form>
+
+<form method="get" style="display:inline-block;">
+<input type="hidden" name="quick" value="all">
+<input type="hidden" name="export" value="1">
+<button class="btn">📜 Quick Export (All Time)</button>
+</form>
+
+</div>
+
+
+<!-- ================= FILTER BAR ================= -->
+
+<form method="get" style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;">
+
+    <input type="text" name="username" placeholder="Username"
+        value="{{ request.args.get('username','') }}">
+
+    <input type="text" name="first_name" placeholder="First Name"
+        value="{{ request.args.get('first_name','') }}">
+
+    <input type="text" name="last_name" placeholder="Last Name"
+        value="{{ request.args.get('last_name','') }}">
+
+    <input type="text" name="subject" placeholder="Subject"
+        value="{{ request.args.get('subject','') }}">
+
+    <button class="btn" type="submit">🔍 Filter</button>
+
+    <a class="btn" href="{{ url_for('export_scores') }}">Reset</a>
+
+</form>
+
+
+<h3>Preview of results</h3>
+<h3>🔥 Latest 10 Submissions</h3>
+
+<table border="1" style="border-collapse:collapse;width:100%; margin-bottom:20px;">
+
+<thead>
+<tr>
+<th>Username</th>
+<th>First Name</th>
+<th>Last Name</th>
+<th>Subject</th>
+<th>Label</th>
+<th>Score</th>
+<th>Total</th>
+<th>Date</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for r in latest_10 %}
+<tr>
+<td>{{ r.user.username }}</td>
+<td>{{ r.user.first_name }}</td>
+<td>{{ r.user.last_name }}</td>
+<td>{{ r.subject.name if r.subject else "N/A" }}</td>
+<td>{{ r.label or "" }}</td>
+<td>{{ r.score }}</td>
+<td>{{ r.total }}</td>
+<td>{{ r.taken_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+
+<!-- ================= PREVIEW TABLE ================= -->
+
+{% if results %}
+
+<h3>Preview of results</h3>
+
+<form method="post" action="{{ url_for('delete_results') }}">
+
+<button type="submit" class="btn" style="margin-bottom:10px;">
+🗑 Delete Selected
+</button>
+
+<table border="1" style="border-collapse:collapse;width:100%;">
+
+<thead>
+<tr>
+<th><input type="checkbox" id="select_all"></th>
+<th>Username</th>
+<th>First Name</th>
+<th>Last Name</th>
+<th>Subject</th>
+<th>Label</th>
+<th>Score</th>
+<th>Total</th>
+<th>Date</th>
+<th>Action</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for r in results %}
+<tr>
+
+<td>
+<input type="checkbox" name="result_ids" value="{{ r.id }}">
+</td>
+
+<td>{{ r.user.username }}</td>
+<td>{{ r.user.first_name }}</td>
+<td>{{ r.user.last_name }}</td>
+<td>{{ r.subject.name if r.subject else "N/A" }}</td>
+<td>{{ r.label or "" }}</td>
+<td>{{ r.score }}</td>
+<td>{{ r.total }}</td>
+<td>{{ r.taken_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+
+<td>
+<button name="result_ids" value="{{ r.id }}" class="btn">
+Delete
+</button>
+</td>
+
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+
+</form>
+
+<!-- ================= PAGINATION ================= -->
+
+<div style="margin-top:20px;">
+
+{% if pagination.pages > 1 %}
+
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+
+{% if pagination.has_prev %}
+
+<a class="btn"
+href="{{ url_for('export_scores',
+page=1,
+start_date=start,
+end_date=end) }}">« First</a>
+
+<a class="btn"
+href="{{ url_for('export_scores',
+page=pagination.prev_num,
+start_date=start,
+end_date=end) }}">‹ Prev</a>
+
+{% endif %}
+
+<span>
+Page {{ pagination.page }} of {{ pagination.pages }}
+</span>
+
+{% if pagination.has_next %}
+
+<a class="btn"
+href="{{ url_for('export_scores',
+page=pagination.next_num,
+start_date=start,
+end_date=end) }}">Next ›</a>
+
+<a class="btn"
+href="{{ url_for('export_scores',
+page=pagination.pages,
+start_date=start,
+end_date=end) }}">Last »</a>
+
+{% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+{% else %}
+
+<p>No results found for this range.</p>
+
+{% endif %}
+
+<!-- ================= SELECT ALL SCRIPT (FIXED) ================= -->
+
+<script>
+function initSelectAllExport() {
+
+    const selectAll = document.getElementById("select_all");
+    if (!selectAll) return;
+
+    const table = selectAll.closest("table");
+    if (!table) return;
+
+    const checkboxes = table.querySelectorAll('input[name="result_ids"]');
+
+    selectAll.onchange = function () {
+        checkboxes.forEach(cb => {
+            cb.checked = selectAll.checked;
+        });
+    };
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSelectAllExport);
+} else {
+    initSelectAllExport();
+}
+</script>
+
+{% endblock %}

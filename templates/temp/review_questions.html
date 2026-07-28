@@ -1,0 +1,38 @@
+﻿{% extends 'base.html' %}
+{% block title %} Review Questions {% endblock %}
+{% block content %}
+
+<h2>Review All Questions — {{ subject.name }}</h2>
+
+<form method="post">
+
+<table border="1" cellpadding="6" cellspacing="0" style="width:100%;">
+    <tr>
+        <th>Select</th>
+        <th>#</th>
+        <th>Prompt</th>
+        <th>Answer</th>
+    </tr>
+    {% for q in questions %}
+    <tr>
+        <td><input type="checkbox" name="del_ids" value="{{ q.id }}"></td>
+        <td>{{ loop.index }}</td>
+        <td>{{ q.prompt }}</td>
+        <td>{{ q.answer }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+<button type="submit" class="btn warn"
+        onclick="return confirm('Delete all selected questions?');">
+        Delete Selected Questions
+</button>
+
+</form>
+
+<br>
+<a class="btn" href="{{ url_for('edit_questions_main', subject_id=subject.id) }}">Back to Editor</a>
+
+
+{% endblock %}

@@ -1,0 +1,322 @@
+﻿{% extends 'base.html' %}
+{% block title %}Reset Password{% endblock %}
+
+{% block content %}
+
+<h2>Reset Password</h2>
+
+<p>
+Select whether you are resetting the
+<strong>Admin</strong> or
+<strong>Licenser</strong> account.
+</p>
+
+<form method="post" id="resetForm">
+
+    <!-- ===================================== -->
+    <!-- ACCOUNT TYPE -->
+    <!-- ===================================== -->
+
+    <label>
+        <input
+            type="radio"
+            name="account_type"
+            value="admin"
+            checked
+        >
+        Admin
+    </label>
+
+    <label style="margin-left:20px;">
+        <input
+            type="radio"
+            name="account_type"
+            value="licenser"
+        >
+        Licenser
+    </label>
+
+    <br><br>
+
+    <!-- ===================================== -->
+    <!-- EMAIL -->
+    <!-- ===================================== -->
+
+    <label>
+        Email address
+        <br>
+        <small>
+            Must match the email already stored
+            for the selected account.
+        </small>
+    </label>
+
+    <br>
+
+    <input
+        type="email"
+        name="email"
+        id="emailInput"
+        placeholder="Enter your email"
+        required
+    >
+
+    <br><br>
+
+    <!-- ===================================== -->
+    <!-- LICENSE KEY -->
+    <!-- ===================================== -->
+
+    <div id="licenseField">
+
+        <label>
+            License Key (Admin only)
+            <br>
+            <small>
+                Leave blank to receive a reset link.
+                Enter a valid key to change the
+                admin password immediately.
+            </small>
+        </label>
+
+        <br>
+
+        <input
+            type="text"
+            name="license_key"
+            id="licenseKeyInput"
+            placeholder="Enter license key"
+        >
+
+    </div>
+
+    <br>
+
+    <button
+        type="submit"
+        id="submitBtn"
+    >
+        Send Reset Link
+    </button>
+
+</form>
+
+<!-- ===================================== -->
+<!-- PASSWORD MODAL -->
+<!-- ===================================== -->
+
+<div
+    id="passwordModal"
+    style="
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        width:100%;
+        height:100%;
+        background:rgba(0,0,0,.5);
+        z-index:9999;
+    "
+>
+
+    <div
+        style="
+            width:400px;
+            background:white;
+            margin:100px auto;
+            padding:20px;
+            border-radius:8px;
+        "
+    >
+
+        <h3>Enter New Admin Password</h3>
+
+        <form method="post">
+
+            <input
+                type="hidden"
+                name="change_password_mode"
+                value="1"
+            >
+
+            <input
+                type="hidden"
+                name="email"
+                id="modalEmail"
+            >
+
+            <input
+                type="hidden"
+                name="license_key"
+                id="modalLicenseKey"
+            >
+
+            <input
+                type="password"
+                name="new_password"
+                placeholder="New Password"
+                required
+            >
+
+            <br><br>
+
+            <button type="submit">
+                Update Password
+            </button>
+
+            <button
+                type="button"
+                onclick="closePasswordModal()"
+            >
+                Cancel
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+
+const accountRadios =
+    document.querySelectorAll(
+        'input[name="account_type"]'
+    );
+
+const licenseField =
+    document.getElementById(
+        "licenseField"
+    );
+
+const licenseKeyInput =
+    document.getElementById(
+        "licenseKeyInput"
+    );
+
+const submitBtn =
+    document.getElementById(
+        "submitBtn"
+    );
+
+function refreshUI() {
+
+    const selected =
+        document.querySelector(
+            'input[name="account_type"]:checked'
+        ).value;
+
+    if (selected === "licenser") {
+
+        licenseField.style.display = "none";
+
+        submitBtn.textContent =
+            "Send Reset Link";
+
+        return;
+    }
+
+    licenseField.style.display = "block";
+
+    const key =
+        licenseKeyInput.value.trim();
+
+    if (key.length >= 10) {
+
+        submitBtn.textContent =
+            "Change Password";
+
+    } else {
+
+        submitBtn.textContent =
+            "Send Reset Link";
+
+    }
+}
+
+accountRadios.forEach(
+    radio => radio.addEventListener(
+        "change",
+        refreshUI
+    )
+);
+
+licenseKeyInput.addEventListener(
+    "input",
+    refreshUI
+);
+
+refreshUI();
+
+document.getElementById(
+    "resetForm"
+).addEventListener(
+    "submit",
+    function(e) {
+
+        const selected =
+            document.querySelector(
+                'input[name="account_type"]:checked'
+            ).value;
+
+        const key =
+            licenseKeyInput.value.trim();
+
+        if (
+            selected === "admin" &&
+            key.length >= 10
+        ) {
+
+            e.preventDefault();
+
+            document.getElementById(
+                "modalEmail"
+            ).value =
+                document.getElementById(
+                    "emailInput"
+                ).value;
+
+            document.getElementById(
+                "modalLicenseKey"
+            ).value =
+                key;
+
+            document.getElementById(
+                "passwordModal"
+            ).style.display =
+                "block";
+        }
+
+    }
+);
+
+function closePasswordModal() {
+
+    document.getElementById(
+        "passwordModal"
+    ).style.display =
+        "none";
+
+}
+
+</script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+
+<ul>
+
+{% for category, message in messages %}
+
+<li>
+    {{ message }}
+</li>
+
+{% endfor %}
+
+</ul>
+
+{% endif %}
+{% endwith %}
+
+{% endblock %}

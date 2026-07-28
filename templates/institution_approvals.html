@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Institution Approval Center{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <h2 class="mb-4">Institution Approval Center</h2>
+
+    <!-- ================= SEARCH / FILTER ================= -->
+<div class="container-fluid mt-4">
+
+  <!-- Search / Filter Form -->
+<form method="GET" class="row g-2 mb-4">
+  <div class="col-md-9">
+    <input type="text" name="search" class="form-control"
+           placeholder="Search by First Name, Last Name, or Username"
+           value="{{ request.args.get('search','') }}">
+  </div>
+  <div class="col-md-3 d-flex">
+    <button type="submit" class="btn btn-primary flex-fill me-2">Search</button>
+    <a href="{{ url_for('institution_approval_center') }}" class="btn btn-secondary flex-fill">Reset</a>
+  </div>
+</form>
+
+
+</div>
+
+
+    <!-- ================= PENDING APPROVALS ================= -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-user-clock me-2"></i> Pending Approvals</h5>
+            <span class="badge bg-dark">{{ pending_users.total }}</span>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('institution_bulk_approve') }}">
+                <div class="mb-2">
+                    <button type="submit" class="btn btn-success btn-sm">Approve Selected</button>
+                    <button formaction="{{ url_for('institution_bulk_reject') }}" class="btn btn-danger btn-sm">Reject Selected</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th><input type="checkbox" onclick="toggleAll('pending', this)"></th>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Email</th>
+                                <th>Date Registered</th>
+                                <th>Status</th>
+                                <th>Approve</th>
+                                <th>Reject</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for u in pending_users.items %}
+                            <tr>
+                                <td><input type="checkbox" name="user_ids" value="{{ u.id }}" class="pending"></td>
+                                <td>{{ loop.index + ((pending_users.page-1) * pending_users.per_page) }}</td>
+                                <td>{{ u.first_name }} {{ u.last_name }}</td>
+                                <td>{{ u.username }}</td>
+                                <td>{{ u.role.replace("_"," ").title() }}</td>
+                                <td>{{ u.email or "-" }}</td>
+                                <td>{{ u.created_at.strftime("%d %b %Y") if u.created_at else "-" }}</td>
+                                <td><span class="badge bg-warning">Pending</span></td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('institution_approve_user', user_id=u.id) }}">
+                                        <button class="btn btn-success btn-sm w-100">Approve</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('institution_reject_user', user_id=u.id) }}">
+                                        <button class="btn btn-danger btn-sm w-100">Reject</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="10" class="text-center">No pending approvals.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= APPROVED USERS ================= -->
+    <div class="card shadow-sm mt-5">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-user-check me-2"></i> Approved Users</h5>
+            <span class="badge bg-light text-dark">{{ approved_users.total }}</span>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('institution_bulk_disapprove') }}">
+                <div class="mb-2">
+                    <button type="submit" class="btn btn-warning btn-sm">Disapprove Selected</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th><input type="checkbox" onclick="toggleAll('approved', this)"></th>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Institution</th>
+                                <th>Approved By</th>
+                                <th>Approved Date</th>
+                                <th>Status</th>
+                                <th>Disapprove</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for u in approved_users.items %}
+                            <tr>
+                                <td><input type="checkbox" name="user_ids" value="{{ u.id }}" class="approved"></td>
+                                <td>{{ loop.index + ((approved_users.page-1) * approved_users.per_page) }}</td>
+                                <td>{{ u.first_name }} {{ u.last_name }}</td>
+                                <td>{{ u.username }}</td>
+                                <td>{{ u.role.replace("_"," ").title() }}</td>
+                                <td>{{ u.institution.name if u.institution else "-" }}</td>
+                                <td>{{ u.approver.first_name ~ " " ~ u.approver.last_name if u.approver else "-" }}</td>
+                                <td>{{ u.approved_at.strftime("%d %b %Y") if u.approved_at else "-" }}</td>
+                                <td><span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Approved</span></td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('institution_disapprove_user', user_id=u.id) }}">
+                                        <button class="btn btn-warning btn-sm w-100">Disapprove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr><td colspan="10" class="text-center">No approved users.</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ================= JS ================= -->
+<script>
+function toggleAll(group, source){
+    document.querySelectorAll('input.'+group).forEach(cb => cb.checked = source.checked);
+}
+</script>
+{% endblock %}

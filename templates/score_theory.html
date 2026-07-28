@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+
+{% block title %}Score Theory Submission{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h2>📝 Score Theory Submission</h2>
+
+    <div class="submission-info">
+
+        <p>
+            <strong>Student:</strong>
+            {{ submission.user.username }}
+        </p>
+
+        <p>
+            <strong>Subject:</strong>
+            {{ submission.subject.name }}
+        </p>
+
+        <p>
+            <strong>Submitted:</strong>
+            {{ submission.submitted_at.strftime('%d %b %Y %I:%M %p') if submission.submitted_at else '' }}
+        </p>
+
+    </div>
+
+    <hr>
+
+    <h3>Student Answers</h3>
+
+    {% if submission.answers %}
+
+        {% for qid, answer in submission.answers.items() %}
+
+        <div class="answer-card">
+
+            <h4>Question {{ loop.index }}</h4>
+
+            {% if answer.text %}
+
+                <div class="answer-text">
+
+                    {{ answer.text }}
+
+                </div>
+
+            {% else %}
+
+                <em>No text answer submitted.</em>
+
+            {% endif %}
+
+            {% if answer.file_path %}
+
+                <div class="answer-image">
+
+                    <p>
+
+                        <strong>Uploaded Image</strong>
+
+                    </p>
+
+                    <a href="{{ url_for('static', filename='uploads/' ~ answer.file_path) }}"
+                       target="_blank">
+
+                        Open Full Image
+
+                    </a>
+
+                    <br><br>
+
+                    <img
+                        src="{{ url_for('static', filename='uploads/' ~ answer.file_path) }}"
+                        alt="Student Upload">
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <div class="empty-box">
+
+            No submitted answers found.
+
+        </div>
+
+    {% endif %}
+
+    <hr>
+
+    <h3>Score Submission</h3>
+
+    <form method="POST">
+
+        <label>
+
+            <strong>Score</strong>
+
+        </label>
+
+        <input
+            type="number"
+            name="score"
+            value="{{ submission.score or 0 }}"
+            min="0"
+            required>
+
+        <br><br>
+
+        <button
+            type="submit"
+            class="btn">
+
+            💾 Save Score
+
+        </button>
+
+        <a
+            href="{{ url_for('view_theory_submissions',
+                             subject_id=submission.subject_id) }}"
+            class="btn btn-secondary">
+
+            ← Back to Submissions
+
+        </a>
+
+    </form>
+
+</div>
+
+<style>
+
+.container{
+    max-width:1000px;
+    margin:auto;
+    background:#fff;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+}
+
+.submission-info{
+    background:#f8fafc;
+    border:1px solid #dbeafe;
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+
+.answer-card{
+    margin-bottom:25px;
+    padding:18px;
+    border:1px solid #ddd;
+    border-left:5px solid #2563eb;
+    border-radius:10px;
+    background:#fafafa;
+}
+
+.answer-card h4{
+    margin-top:0;
+    color:#1e40af;
+}
+
+.answer-text{
+    white-space:pre-wrap;
+    line-height:1.6;
+    margin-bottom:15px;
+}
+
+.answer-image img{
+    max-width:450px;
+    width:100%;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+.empty-box{
+    padding:20px;
+    text-align:center;
+    border:1px dashed #ccc;
+    border-radius:10px;
+    color:#666;
+    font-style:italic;
+}
+
+input[type="number"]{
+    width:150px;
+    padding:10px;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
+.btn{
+    display:inline-block;
+    padding:10px 18px;
+    background:#2563eb;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    text-decoration:none;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.btn:hover{
+    background:#1d4ed8;
+}
+
+.btn-secondary{
+    background:#6b7280;
+    margin-left:10px;
+}
+
+.btn-secondary:hover{
+    background:#4b5563;
+}
+
+</style>
+
+{% endblock %}

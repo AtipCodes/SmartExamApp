@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    margin: 20px;
+}
+
+/* WATERMARK */
+body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url("{{ url_for('static', filename=background) }}") no-repeat center;
+    background-size: cover;
+    opacity: 0.05;
+    z-index: -1;
+}
+
+.header {
+    text-align: center;
+}
+
+.logo {
+    height: 70px;
+}
+
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #0044cc;
+}
+
+.subtitle {
+    background: #00cccc;
+    padding: 4px;
+    font-weight: bold;
+}
+
+.term {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-weight: bold;
+    color: #cc00cc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+}
+
+td, th {
+    border: 1px solid #000;
+    padding: 4px;
+    text-align: center;
+}
+
+.no-border td {
+    border: none;
+    text-align: left;
+}
+
+.section-title {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* small text */
+.small {
+    font-size: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    {% if logo %}
+        <img src="{{ url_for('static', filename=logo) }}" class="logo">
+    {% endif %}
+    <div class="title">{{ settings.name }}</div>
+    <div class="subtitle">CONTINUOUS ASSESSMENT REPORT</div>
+
+    <div class="term">
+        <div>{{ settings.term }} TERM</div>
+        <div>{{ settings.session }}</div>
+    </div>
+</div>
+
+<!-- STUDENT INFO -->
+<table class="no-border">
+<tr>
+    <td><b>Name of Student:</b> {{ student.first_name }} {{ student.last_name }}</td>
+    <td><b>Position in class:</b> {{ position }}</td>
+</tr>
+<tr>
+    <td><b>Admission No:</b> {{ student.username }}</td>
+    <td><b>No in Class:</b> {{ class_size }}</td>
+</tr>
+<tr>
+    <td><b>Class:</b> {{ student.class_name or '' }}</td>
+    <td><b>Age:</b> {{ student.age or '' }}</td>
+</tr>
+</table>
+
+<!-- ATTENDANCE -->
+<div class="section-title">FREQUENCY</div>
+<table>
+<tr>
+    <th></th>
+    <th>School</th>
+    <th>Sports</th>
+    <th>Club Activities</th>
+</tr>
+<tr>
+    <td>No. of times school opened</td>
+    <td>{{ attendance.opened or '' }}</td>
+    <td></td><td></td>
+</tr>
+<tr>
+    <td>No. of times present</td>
+    <td>{{ attendance.present or '' }}</td>
+    <td></td><td></td>
+</tr>
+<tr>
+    <td>No. of times punctual</td>
+    <td>{{ attendance.punctual or '' }}</td>
+    <td></td><td></td>
+</tr>
+</table>
+
+<!-- SUBJECT PERFORMANCE -->
+<div class="section-title">PERFORMANCE IN SUBJECTS</div>
+
+<table>
+<tr>
+    <th>Subject</th>
+    <th>CA</th>
+    <th>Exam</th>
+    <th>Total</th>
+    <th>Grade</th>
+    <th>Remark</th>
+</tr>
+
+{% set total_score = 0 %}
+{% set total_subjects = results|length %}
+
+{% for r in results %}
+{% set ca = r.score or 0 %}
+{% set exam = r.theory_score or 0 %}
+{% set total = ca + exam %}
+{% set percent = (total / r.total * 100) if r.total else 0 %}
+{% set grade, remark = calculate_grade(percent) %}
+
+<tr>
+    <td>{{ r.subject.name }}</td>
+    <td>{{ ca }}</td>
+    <td>{{ exam }}</td>
+    <td>{{ total }}</td>
+    <td>{{ grade }}</td>
+    <td>{{ remark }}</td>
+</tr>
+
+{% set total_score = total_score + total %}
+{% endfor %}
+
+<tr>
+    <td><b>TOTAL</b></td>
+    <td colspan="5">{{ total_score }}</td>
+</tr>
+
+<tr>
+    <td><b>AVERAGE</b></td>
+    <td colspan="5">
+        {{ (total_score / total_subjects) | round(2) if total_subjects else 0 }}
+    </td>
+</tr>
+</table>
+
+<!-- CONDUCT -->
+<div class="section-title">OBSERVATION ON CONDUCT</div>
+
+<table>
+<tr>
+    <th>Qualities</th>
+    <th>A1</th><th>B2</th><th>C3</th><th>D4</th>
+</tr>
+
+{% for q in ['Honesty','Leadership','Punctuality','Cleanliness','Attentiveness','Politeness','Emotional Stability'] %}
+<tr>
+    <td>{{ q }}</td>
+    <td></td><td></td><td></td><td></td>
+</tr>
+{% endfor %}
+</table>
+
+<!-- GRADE GUIDE -->
+<div class="section-title">GRADE SPECIFICATION</div>
+<p class="small">
+A1 = 75% & Above, B2 = 70–74%, B3 = 65–69%, C4 = 60–64%, C5 = 55–59%, C6 = 50–54%, D7 = 45–49%, E8 = 40–44%, F9 = 0–39%
+</p>
+
+<!-- COMMENTS -->
+<div class="section-title">COMMENTS</div>
+
+<p><b>Class Teacher's Comment:</b> __________________________</p>
+<p><b>House Master/Mistress Comment:</b> __________________________</p>
+<p><b>Principal's Comment:</b> __________________________</p>
+<p><b>Parent's Comment:</b> __________________________</p>
+
+<!-- SIGNATURE -->
+<p style="margin-top:20px;">
+<b>Principal Signature:</b> __________________________
+</p>
+
+</body>
+</html>

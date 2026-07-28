@@ -1,0 +1,522 @@
+{% extends 'base.html' %}
+{% block title %} Theory Exam {% endblock %}
+
+{% block content %}
+
+<style>
+
+.exam-container{
+    max-width:1100px;
+    margin:auto;
+}
+
+.exam-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:15px;
+    margin-bottom:25px;
+    padding:18px;
+    background:#ffffff;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.exam-title{
+    margin:0;
+    color:#333;
+}
+
+.subject-name{
+    color:#007bff;
+    font-weight:bold;
+}
+
+.timer-box{
+    background:#dc3545;
+    color:#fff;
+    padding:12px 20px;
+    border-radius:10px;
+    font-size:22px;
+    font-weight:bold;
+    min-width:180px;
+    text-align:center;
+    box-shadow:0 2px 8px rgba(220,53,69,.35);
+}
+
+.question-card{
+    background:#fff;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:25px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+    border-left:5px solid #007bff;
+}
+
+.question-number{
+    color:#007bff;
+    font-weight:bold;
+    font-size:18px;
+}
+
+.question-text{
+    font-size:16px;
+    line-height:1.6;
+    margin-top:8px;
+    margin-bottom:15px;
+}
+
+.question-image{
+    max-width:100%;
+    max-height:400px;
+    border-radius:8px;
+    border:1px solid #ddd;
+    margin-bottom:15px;
+}
+
+.answer-box{
+    width:100%;
+    min-height:150px;
+    padding:12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    resize:vertical;
+    font-size:15px;
+}
+
+.answer-box:focus{
+    outline:none;
+    border-color:#007bff;
+    box-shadow:0 0 0 3px rgba(0,123,255,.15);
+}
+
+.upload-section{
+    margin-top:15px;
+    padding:12px;
+    background:#f8f9fa;
+    border-radius:8px;
+}
+
+.upload-label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.file-link{
+    margin-top:10px;
+    display:inline-block;
+    text-decoration:none;
+    color:#28a745;
+    font-weight:bold;
+}
+
+.file-link:hover{
+    text-decoration:underline;
+}
+
+.button-bar{
+    position:sticky;
+    bottom:0;
+    background:#fff;
+    padding:15px;
+    border-radius:12px;
+    box-shadow:0 -2px 10px rgba(0,0,0,.08);
+    display:flex;
+    justify-content:center;
+    gap:15px;
+    margin-top:30px;
+}
+
+.save-btn{
+    background:#17a2b8;
+    color:#fff;
+    border:none;
+    padding:12px 25px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.save-btn:hover{
+    opacity:.9;
+}
+
+.submit-btn{
+    background:#28a745;
+    color:#fff;
+    border:none;
+    padding:12px 25px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.submit-btn:hover{
+    opacity:.9;
+}
+
+.question-count{
+    color:#666;
+    font-size:14px;
+}
+
+@media(max-width:768px){
+
+    .exam-header{
+        flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .timer-box{
+        width:100%;
+    }
+
+    .button-bar{
+        flex-direction:column;
+    }
+
+    .save-btn,
+    .submit-btn{
+        width:100%;
+    }
+}
+
+</style>
+
+<div class="exam-container">
+
+    <div class="exam-header">
+
+        <div>
+
+            <h2 class="exam-title">
+                Theory Examination
+            </h2>
+
+            <div class="subject-name">
+                {{ subject.name }}
+            </div>
+
+            <div class="question-count">
+                {{ questions|length }} Question(s)
+            </div>
+
+        </div>
+
+        <div id="timer" class="timer-box">
+            Loading...
+        </div>
+
+    </div>
+
+    <form method="POST"
+          enctype="multipart/form-data"
+          id="theoryForm">
+
+        {% for q in questions %}
+
+        <div class="question-card">
+
+            <div class="question-number">
+                Question {{ loop.index }}
+            </div>
+
+            <div class="question-text">
+                {{ q.prompt }}
+            </div>
+
+            {% if q.image %}
+				<img src="{{ url_for( 'static',
+					filename='uploads/' + q.image
+				) }}"
+					 class="question-image">
+            {% endif %}
+
+            <textarea
+                class="answer-box"
+                name="answer_{{ q.id }}"
+                placeholder="Type your answer here...">{{ answers.get(q.id|string, {}).get('text', '') }}</textarea>
+
+            <div class="upload-section">
+
+                <label class="upload-label">
+                    Upload Supporting File (Optional)
+                </label>
+
+				<small style="color:#666;">
+					Allowed: PDF, Word, Excel, PowerPoint,
+					Images (JPG, PNG), Text, Photoshop (PSD),
+					Illustrator (AI)
+				</small>
+
+                <input type="file"
+                       name="file_{{ q.id }}">
+
+                {% if answers.get(q.id|string)
+                      and answers.get(q.id|string).get('file_path') %}
+
+                    <br>
+
+                    <a class="file-link"
+                       href="{{ url_for(
+                            'static',
+                            filename='uploads/' +
+                            answers.get(q.id|string).get('file_path')
+                       ) }}"
+                       target="_blank">
+
+                        📎 View Uploaded File
+
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+        <div class="button-bar">
+
+            <button type="submit"
+                    name="save"
+                    class="save-btn">
+
+                💾 Save Answers
+
+            </button>
+
+            <button type="submit"
+                    name="submit"
+					value="1"
+                    class="submit-btn"
+                    onclick="return confirm('Are you sure you want to submit your theory examination?');">
+
+                ✅ Submit Exam
+
+            </button>
+
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+
+let remaining = {{ remaining|default(1800) }};
+let autoSubmitted = false;
+let timerInterval = null;
+
+// ==========================
+// Upload reminder
+// ==========================
+let uploadReminderShown = false;
+
+// ==========================
+// Final warning
+// ==========================
+let finalWarningShown = false;
+
+function formatTime(seconds){
+
+    const hours = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    if(hours > 0){
+
+        return (
+            String(hours).padStart(2,'0')
+            + ":" +
+            String(mins).padStart(2,'0')
+            + ":" +
+            String(secs).padStart(2,'0')
+        );
+    }
+
+    return (
+        String(mins).padStart(2,'0')
+        + ":" +
+        String(secs).padStart(2,'0')
+    );
+}
+
+function saveTextAnswersAndExit(){
+
+    if(autoSubmitted){
+        return;
+    }
+
+    autoSubmitted = true;
+
+    const form = document.getElementById("theoryForm");
+
+    const formData = new FormData();
+
+    document.querySelectorAll("textarea").forEach(function(box){
+
+        formData.append(
+            box.name,
+            box.value
+        );
+
+    });
+
+    fetch(
+        "{{ url_for('theory_autosave', subject_id=subject.id) }}",
+        {
+            method: "POST",
+            body: formData
+        }
+    )
+    .finally(() => {
+
+		window.location.replace(
+			"{{ url_for('dashboard') }}?theory_timeout=1"
+		);
+
+    });
+}
+
+function updateTimer(){
+
+    if(autoSubmitted){
+        return;
+    }
+
+    const timer =
+        document.getElementById("timer");
+
+    timer.innerHTML =
+        "⏳ " + formatTime(remaining);
+
+    if(remaining <= 300){
+        timer.style.background = "#ff9800";
+    }
+
+    if(remaining <= 60){
+        timer.style.background = "#dc3545";
+    }
+
+    // =====================================
+    // Upload reminder during first 2 mins
+    // =====================================
+    const examLength =
+        {{ (subject.theory_duration_minutes or 30) * 60 }};
+
+    const elapsed =
+        examLength - remaining;
+
+    if(
+        elapsed <= 120 &&
+        !uploadReminderShown
+    ){
+
+        uploadReminderShown = true;
+
+        alert(
+            "Please ensure you click SAVE after every upload. Uploaded files cannot be auto-saved when exam time expires."
+        );
+    }
+
+    // =====================================
+    // Last 30 seconds warning
+    // =====================================
+    if(
+        remaining <= 30 &&
+        !finalWarningShown
+    ){
+
+        finalWarningShown = true;
+
+        alert(
+            "WARNING: Less than 30 seconds remaining. Save any uploaded files now. Only typed answers can be auto-saved when time expires."
+        );
+    }
+
+    // =====================================
+    // Timeout
+    // =====================================
+    if(remaining <= 0){
+
+        clearInterval(timerInterval);
+
+        alert(
+            "Exam time has ended. Typed answers will be saved automatically."
+        );
+
+        saveTextAnswersAndExit();
+
+        return;
+    }
+
+    remaining--;
+}
+
+updateTimer();
+
+timerInterval = setInterval(
+    updateTimer,
+    1000
+);
+
+// =====================================
+// Auto-save typed answers every 30 sec
+// =====================================
+function autoSave(){
+
+    if(autoSubmitted){
+        return;
+    }
+
+    const form =
+        document.getElementById("theoryForm");
+
+    const formData =
+        new FormData();
+
+    document.querySelectorAll("textarea").forEach(function(box){
+
+        formData.append(
+            box.name,
+            box.value
+        );
+
+    });
+
+    fetch(
+        "{{ url_for('theory_autosave', subject_id=subject.id) }}",
+        {
+            method: "POST",
+            body: formData
+        }
+    )
+    .then(response => response.json())
+    .then(data => {
+
+        console.log(
+            "Auto-saved"
+        );
+
+    })
+    .catch(error => {
+
+        console.log(
+            "Auto-save failed"
+        );
+
+    });
+}
+
+setInterval(
+    autoSave,
+    30000
+);
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,1139 @@
+﻿{% extends 'base.html' %}
+{% block title %} Manage Users {% endblock %}
+{% block content %}
+<style>
+.page-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    background:white;
+
+    padding:20px;
+
+    border-radius:12px;
+
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
+
+    margin-bottom:20px;
+
+}
+
+.page-header h2{
+
+    margin:0;
+
+    color:#2c3e50;
+
+}
+
+.page-header p{
+
+    margin-top:6px;
+
+    color:#777;
+
+}
+
+/* ==========================
+   Dashboard Stats
+========================== */
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:18px;
+    margin-bottom:22px;
+}
+
+.stat-card{
+
+    background:#fff;
+
+    border-radius:14px;
+
+    padding:20px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:18px;
+
+    box-shadow:0 5px 18px rgba(0,0,0,.08);
+
+    transition:.25s;
+}
+
+.stat-card:hover{
+
+    transform:translateY(-4px);
+
+    box-shadow:0 10px 25px rgba(0,0,0,.12);
+
+}
+
+.stat-icon{
+
+    width:62px;
+
+    height:62px;
+
+    border-radius:14px;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    font-size:28px;
+
+    color:white;
+
+}
+
+.icon-users{
+
+    background:linear-gradient(135deg,#3b82f6,#2563eb);
+
+}
+
+.icon-students{
+
+    background:linear-gradient(135deg,#10b981,#059669);
+
+}
+
+.icon-subadmins{
+
+    background:linear-gradient(135deg,#f59e0b,#d97706);
+
+}
+
+.icon-admins{
+
+    background:linear-gradient(135deg,#ef4444,#dc2626);
+
+}
+
+.stat-info h3{
+
+    margin:0;
+
+    font-size:14px;
+
+    color:#666;
+
+}
+
+.stat-info h2{
+
+    margin:6px 0 0;
+
+    font-size:28px;
+
+    color:#222;
+
+}
+
+.create-btn{
+
+    padding:12px 18px;
+
+    font-size:15px;
+
+}
+
+
+
+.card{
+
+    background:white;
+
+    border-radius:12px;
+
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+
+    padding:18px;
+
+    margin-bottom:20px;
+
+}
+
+
+
+.table-card{
+
+    background:white;
+
+    border-radius:12px;
+
+    box-shadow:0 3px 10px rgba(0,0,0,.08);
+
+    overflow:hidden;
+
+}
+
+
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+
+.users-table th{
+
+    padding:15px;
+
+    font-size:14px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.4px;
+
+}
+
+
+td{
+
+    padding:10px;
+
+    vertical-align:top;
+
+}
+
+
+
+tbody tr:nth-child(even){
+
+    background:#fafafa;
+
+}
+
+
+
+tbody tr:hover{
+
+    background:#eef6ff;
+
+}
+
+
+
+.permission-box{
+
+    max-height:180px;
+
+    overflow-y:auto;
+
+    overflow-x:hidden;
+
+    border:1px solid #ddd;
+
+    border-radius:8px;
+
+    background:#fcfcfc;
+
+    padding:10px;
+
+}
+
+.permission-box label{
+
+    display:block;
+
+    margin-bottom:5px;
+
+}
+
+.edit-user-form{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+
+    gap:18px;
+
+}
+
+.edit-field{
+
+    display:flex;
+
+    flex-direction:column;
+
+}
+
+.edit-field label{
+
+    font-weight:bold;
+
+    margin-bottom:6px;
+
+}
+
+.edit-field input,
+
+.edit-field select{
+
+    width:100%;
+
+    padding:8px;
+
+    border:1px solid #ccc;
+
+    border-radius:6px;
+
+}
+
+.edit-actions{
+
+    grid-column:1/-1;
+
+    text-align:right;
+
+}
+
+
+/* ================================
+   USER TABLE REDESIGN
+================================ */
+
+.users-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.users-table thead th{
+
+    position:sticky;
+
+    top:0;
+
+    z-index:10;
+
+    background:linear-gradient(90deg,#1e3a8a,#2563eb);
+
+    color:white;
+
+    padding:15px;
+
+    font-weight:700;
+
+    font-size:14px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.5px;
+
+    border-bottom:none;
+}
+
+.users-table tbody tr {
+    transition: all .2s ease;
+}
+
+.users-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+.users-table tbody tr:hover {
+    background: #eef6ff;
+}
+
+.users-table td {
+    padding: 14px;
+    vertical-align: middle;
+}
+
+.user-info{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.user-avatar{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#4f46e5,#2563eb);
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+    font-size:17px;
+    flex-shrink:0;
+}
+
+.user-meta{
+    display:flex;
+    flex-direction:column;
+}
+
+.user-meta small{
+    color:#777;
+}
+
+.role-badge{
+    padding:6px 12px;
+    border-radius:50px;
+    font-size:.82rem;
+    font-weight:600;
+}
+
+.role-admin{
+    background:#ffe8b3;
+    color:#7a5200;
+}
+
+.role-subadmin{
+    background:#d6f5ff;
+    color:#005a7a;
+}
+
+.role-student{
+    background:#e7f8e8;
+    color:#206b30;
+}
+
+.status-badge{
+    padding:6px 12px;
+    border-radius:30px;
+    font-size:.82rem;
+    font-weight:600;
+}
+
+.status-active{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.status-deleted{
+    background:#fee2e2;
+    color:#b91c1c;
+}
+
+.status-suspended{
+    background:#fef3c7;
+    color:#92400e;
+}
+
+.action-btn{
+    width:38px;
+    height:38px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    transition:.2s;
+    margin-right:5px;
+}
+
+.action-btn:hover{
+    transform:translateY(-2px);
+}
+
+.btn-edit{
+    background:#dbeafe;
+    color:#1d4ed8;
+}
+
+.btn-delete{
+    background:#fee2e2;
+    color:#dc2626;
+}
+
+.btn-restore{
+    background:#dcfce7;
+    color:#15803d;
+}
+
+.btn-password{
+    background:#ede9fe;
+    color:#6d28d9;
+}
+
+/* ==========================================
+   Scrollable Selection Boxes
+========================================== */
+
+.selection-box{
+    max-height:220px;
+    overflow-y:auto;
+    overflow-x:hidden;
+
+    border:1px solid #d9dee8;
+    border-radius:10px;
+    background:#fbfcfe;
+
+    padding:12px;
+    margin-top:10px;
+
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.05);
+}
+
+.selection-box label{
+    display:flex;
+    align-items:center;
+    gap:8px;
+
+    padding:7px 8px;
+
+    border-radius:6px;
+
+    cursor:pointer;
+
+    transition:.2s;
+}
+
+.selection-box label:hover{
+    background:#eef6ff;
+}
+
+.selection-box input[type="checkbox"]{
+    transform:scale(1.05);
+}
+
+/* Beautiful scrollbar */
+
+.selection-box::-webkit-scrollbar{
+    width:8px;
+}
+
+.selection-box::-webkit-scrollbar-track{
+    background:#f1f1f1;
+    border-radius:20px;
+}
+
+.selection-box::-webkit-scrollbar-thumb{
+    background:#b8c2cc;
+    border-radius:20px;
+}
+
+.selection-box::-webkit-scrollbar-thumb:hover{
+    background:#8d99a6;
+}
+
+.selection-box{
+    min-width:260px;
+}
+
+</style>
+
+<div class="page-header">
+    <div>
+        <h2>👥 User Management</h2>
+        <p>
+            Manage students, sub-admins and administrators.
+        </p>
+    </div>
+    <button class="btn create-btn"
+            onclick="openCreateUserModal()">
+        ➕ Create User
+    </button>
+</div>
+
+<!-- FLASH -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div style="margin-bottom:10px;">
+  {% for category, msg in messages %}
+    <div class="flash {{ category }}"
+         style="padding:6px;margin-bottom:4px;border-radius:4px;
+         {% if category=='error' %}background:#f8d7da;color:#721c24;
+         {% elif category=='success' %}background:#d4edda;color:#155724;
+         {% else %}background:#cce5ff;color:#004085;{% endif %}">
+      {{ msg }}
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<hr>
+<div class="stats-grid">
+
+    <div class="stat-card">
+
+        <div class="stat-icon icon-users">
+            👥
+        </div>
+
+        <div class="stat-info">
+
+            <h3>Total Users</h3>
+
+            <h2>{{ users.total }}</h2>
+
+        </div>
+
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-icon icon-students">
+            🎓
+        </div>
+
+        <div class="stat-info">
+
+            <h3>Students</h3>
+
+            <h2>
+                {{ users.items|selectattr("role","equalto","student")|list|length }}
+            </h2>
+
+        </div>
+
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-icon icon-subadmins">
+            👨‍🏫
+        </div>
+
+        <div class="stat-info">
+
+            <h3>Sub Admins</h3>
+
+            <h2>
+                {{ users.items|selectattr("role","equalto","subadmin")|list|length }}
+            </h2>
+
+        </div>
+
+    </div>
+
+    <div class="stat-card">
+
+        <div class="stat-icon icon-admins">
+            🛡
+        </div>
+
+        <div class="stat-info">
+
+            <h3>Admins</h3>
+
+            <h2>
+                {{ users.items|selectattr("role","equalto","admin")|list|length }}
+            </h2>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- FILTER -->
+<div class="card">
+<form method="get">
+    <input type="hidden"
+           name="search"
+           value="{{ search or '' }}">
+    <label style="margin-right:20px;">
+        <input type="checkbox"
+               id="filter_students"
+               name="filter_students"
+               value="1"
+               {% if filter_students=="1" %}checked{% endif %}>
+        Students
+    </label>
+    <label>
+        <input type="checkbox"
+               id="filter_subadmins"
+               name="filter_subadmins"
+               value="1"
+               {% if filter_subadmins=="1" %}checked{% endif %}>
+        Sub-admins
+    </label>
+    <button class="btn">
+        Apply
+    </button>
+</form>
+</div>
+
+<!-- SEARCH -->
+<div class="card">
+<form method="get">
+    <input
+        type="text"
+        name="search"
+        value="{{ search or '' }}"
+        placeholder="🔍 Search by name, username, registration number or email..."
+        style="width:350px;">
+    <input type="hidden"
+           name="filter_students"
+           value="{{ filter_students }}">
+    <input type="hidden"
+           name="filter_subadmins"
+           value="{{ filter_subadmins }}">
+    <button class="btn">
+        Search
+    </button>
+    <a class="btn light"
+       href="{{ url_for('manage_users') }}">
+        Reset
+    </a>
+</form>
+</div>
+
+<!-- TABLE -->
+<div class="table-card">
+
+<div style="overflow-x:auto;">
+
+<table class="users-table" style="min-width:900px;">
+
+<thead>
+<tr>
+  <th>ID</th>
+  <th>Name</th>
+  <th>Username</th>
+  <th>Email</th>
+  <th>Role</th>
+  <th id="classHeader">Class</th>
+  <th id="subjectsHeader">Subjects</th>
+  <th id="groupsHeader">Groups</th>
+  <th>Actions</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for u in users.items %}
+
+<tr {% if u.id in recent_user_ids %}style="background:#ffe8a3;"{% endif %}>
+
+  <td>{{ u.id }}</td>
+	<td>
+<div class="user-info">
+    <div class="user-avatar">
+        {{ (u.first_name[:1] if u.first_name else '') }}{{ (u.last_name[:1] if u.last_name else '') }}
+    </div>
+    <div class="user-meta">
+        <strong>{{ u.first_name }} {{ u.last_name }}</strong>
+        <small>{{ u.username }}</small>
+    </div>
+</div>
+	</td>
+  <td>{{ u.username }}</td>
+  <td>{{ u.email or '-' }}</td>
+	<td>
+	{% if u.role == 'admin' %}
+	<span class="role-badge role-admin">
+	🛡 Admin
+	</span>
+	{% elif u.role == 'subadmin' %}
+	<span class="role-badge role-subadmin">
+	👨‍🏫 Sub Admin
+	</span>
+	{% else %}
+	<span class="role-badge role-student">
+	🎓 Student
+	</span>
+	{% endif %}
+	</td>
+	<td class="class-column">
+	{% if u.academic_class %}
+		{{ u.academic_class.class_name }}
+	{% else %}
+		-
+	{% endif %}
+	</td> 
+
+  <!-- ================= SUBJECTS ================= -->
+  <td class="subadmin-column">
+    {% if u.role == 'subadmin' %}
+
+{% set allowed_subjects = json_load(u.allowed_subject_ids_json) %}
+
+<button class="btn light" onclick="toggleSubjects({{ u.id }})">
+  Subjects
+</button>
+
+<div id="subjects-{{ u.id }}"
+     class="selection-box"
+     style="display:none;">
+
+  <form method="post">
+    <input type="hidden" name="action" value="update_subjects">
+    <input type="hidden" name="id" value="{{ u.id }}">
+
+    {% for s in subjects %}
+    <label>
+      <input type="checkbox"
+             name="allowed_subjects"
+             value="{{ s.id }}"
+             {% if s.id in allowed_subjects %}checked{% endif %}>
+	  {{ s.name }} ({{ s.label or 'No Label' }})
+    </label><br>
+    {% endfor %}
+
+    <button class="btn small">Done</button>
+  </form>
+
+</div>
+
+    {% else %} — {% endif %}
+  </td>
+
+  <!-- ================= GROUPS ================= -->
+  <td class="subadmin-column">
+    {% if u.role == 'subadmin' %}
+
+{% set allowed_groups = json_load(u.allowed_group_ids_json) %}
+
+<button class="btn light" onclick="toggleGroups({{ u.id }})">
+  Groups
+</button>
+
+<div id="groups-{{ u.id }}"
+     class="selection-box"
+     style="display:none;">
+
+  <form method="post">
+    <input type="hidden" name="action" value="update_groups">
+    <input type="hidden" name="id" value="{{ u.id }}">
+
+    {% for g in groups %}
+    <label>
+      <input type="checkbox"
+             name="allowed_groups"
+             value="{{ g.id }}"
+             {% if g.id in allowed_groups %}checked{% endif %}>
+      {{ g.name }}
+    </label><br>
+    {% endfor %}
+
+	<div style="margin-top:12px; text-align:right;">
+		<button class="btn small">
+			✔ Save
+		</button>
+	</div>  
+  </form>
+
+</div>
+
+    {% else %} — {% endif %}
+  </td>
+
+  <!-- ================= ACTIONS ================= -->
+  <td>
+    <button class="btn" onclick="toggleEditForm({{ u.id }})">Edit</button>
+
+    <form method="post"
+          style="display:inline;"
+          onsubmit="return confirm('Are you sure you want to delete this user?');">
+      <input type="hidden" name="action" value="delete">
+      <input type="hidden" name="id" value="{{ u.id }}">
+      <button class="btn warn">Delete</button>
+    </form>
+  </td>
+
+</tr>
+
+<!-- EDIT ROW -->
+<tr id="editRow-{{ u.id }}" style="display:none;">
+<td colspan="9">
+<form method="post">
+  <input type="hidden" name="action" value="update_user">
+  <input type="hidden" name="id" value="{{ u.id }}">
+  
+  <input type="text" name="first_name" placeholder="First Name" value="{{ u.first_name }}">
+  <input type="text" name="last_name" placeholder="Last Name" value="{{ u.last_name }}">
+	<div class="form-group editClassRow">
+		<label>Class</label>
+		<select name="academic_class_id" class="form-control" >
+			<option value=""> Select Class </option>
+			{% for cls in academic_classes %}
+			<option
+				value="{{ cls.id }}"
+				{% if u.academic_class_id == cls.id %}
+				selected
+				{% endif %} >
+				{{ cls.class_name }}
+			</option>
+			{% endfor %}
+		</select>
+	</div> 
+	
+  <input type="text" name="username" placeholder="Username" value="{{ u.username }}">
+  <input type="password" name="password" placeholder="Leave blank to keep current password">
+  <input type="email" name="email" placeholder="Email Address" 
+  value="{{ u.email }}">
+  <input type="text" name="registration_number"
+    placeholder="Registration Number"
+    value="{{ u.registration_number or '' }}" >
+	<input type="number" name="age" min="1" placeholder="Age"
+    value="{{ u.age or '' }}" >
+
+  <select name="role" class="editRole">
+    <option value="student" {% if u.role=='student' %}selected{% endif %}>Student</option>
+    <option value="subadmin" {% if u.role=='subadmin' %}selected{% endif %}>Sub-admin</option>
+    <option value="admin" {% if u.role=='admin' %}selected{% endif %}>Admin</option>
+  </select>
+
+  <button class="btn">Save</button>
+</form>
+</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- PAGINATION -->
+<div style="text-align:center;margin-top:10px;">
+
+{% if users.has_prev %}
+<a class="btn" href="{{ url_for('manage_users',
+page=users.prev_num,
+search=search,
+filter_students=filter_students,
+filter_subadmins=filter_subadmins) }}">
+Prev
+</a>
+{% endif %}
+
+<strong>Page {{ users.page }} / {{ users.pages }}</strong>
+
+{% if users.has_next %}
+<a class="btn" href="{{ url_for('manage_users',
+page=users.next_num,
+search=search,
+filter_students=filter_students,
+filter_subadmins=filter_subadmins) }}">
+Next
+</a>
+{% endif %}
+
+</div>
+
+<!-- CREATE USER MODAL -->
+<div id="createUserModal"
+     style="display:none; position:fixed; top:0; left:0;
+            width:100%; height:100%; background:rgba(0,0,0,0.5);
+            justify-content:center; align-items:center;">
+
+  <div style="background:#fff; padding:20px; width:400px; border-radius:8px;">
+
+    <h3>Create User</h3>
+
+    <form method="post" id="createUserForm">
+      <input type="hidden" name="action" value="create">
+
+      <input name="first_name" placeholder="First Name"><br><br>
+      <input name="last_name" placeholder="Last Name"><br><br>
+      <input name="username" placeholder="Username" required><br><br>
+      <input name="email" placeholder="Email"><br><br>
+		<input name="registration_number"
+			placeholder="Registration Number" ><br><br>	  
+		<input type="number" name="age" min="1" placeholder="Age"
+		><br><br>			
+		<div class="form-group" id="createClassRow">
+			<label>Class</label>
+			<select name="academic_class_id" class="form-control" >
+				<option value=""> Select Class </option>
+				{% for cls in academic_classes %}
+				<option value="{{ cls.id }}">
+					{{ cls.class_name }}
+				</option>
+				{% endfor %}
+			</select>
+		</div><br>  
+      <input name="password" placeholder="Password" value="123456">
+		<label>Password</label><br><br>
+      <select name="role" id="createRole">
+        <option value="student">Student</option>
+        <option value="subadmin">Sub-admin</option>
+        <option value="admin">Admin</option>
+      </select><br><br>
+
+      <button class="btn" type="submit">Create</button>
+      <button class="btn light" type="button" onclick="closeCreateUserModal()">Cancel</button>
+    </form>
+
+  </div>
+</div>
+
+<script>
+function openCreateUserModal() {
+    document.getElementById("createUserModal").style.display = "flex";
+}
+
+function closeCreateUserModal() {
+    document.getElementById("createUserModal").style.display = "none";
+}
+
+function toggleEditForm(id) {
+    let row = document.getElementById("editRow-" + id);
+    row.style.display = (row.style.display === "none") ? "table-row" : "none";
+}
+
+function toggleSubjects(id) {
+    let el = document.getElementById("subjects-" + id);
+    el.style.display = (el.style.display === "none") ? "block" : "none";
+}
+
+function toggleGroups(id) {
+    let el = document.getElementById("groups-" + id);
+    el.style.display = (el.style.display === "none") ? "block" : "none";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    const students = document.getElementById("filter_students");
+    const subadmins = document.getElementById("filter_subadmins");
+
+	const classHeader = document.getElementById("classHeader");
+	const subjectsHeader = document.getElementById("subjectsHeader");
+	const groupsHeader = document.getElementById("groupsHeader");
+	const classColumns = document.querySelectorAll(".class-column");
+	const subadminColumns = document.querySelectorAll(".subadmin-column");
+
+	function updateUI() {
+
+		if (students.checked) {
+
+			subadmins.checked = false;
+
+			if (classHeader)
+				classHeader.style.display = "";
+			if (subjectsHeader)
+				subjectsHeader.style.display = "none";
+			if (groupsHeader)
+				groupsHeader.style.display = "none";
+			classColumns.forEach(col => {
+				col.style.display = "";
+			});
+			subadminColumns.forEach(col => {
+				col.style.display = "none";
+			});
+		}
+
+		else if (subadmins.checked) {
+
+			students.checked = false;
+
+			if (classHeader)
+				classHeader.style.display = "none";
+			if (subjectsHeader)
+				subjectsHeader.style.display = "";
+			if (groupsHeader)
+				groupsHeader.style.display = "";
+			classColumns.forEach(col => {
+				col.style.display = "none";
+			});
+			subadminColumns.forEach(col => {
+				col.style.display = "";
+			});
+		}
+
+		else {
+
+			students.checked = true;
+
+			updateUI();
+
+		}
+
+	}
+
+	students.addEventListener("change", function () {
+
+		students.checked = true;
+		subadmins.checked = false;
+
+		updateUI();
+
+	});
+
+	subadmins.addEventListener("change", function () {
+
+		subadmins.checked = true;
+		students.checked = false;
+
+		updateUI();
+
+	});
+
+    updateUI();
+	
+/* ---------- CREATE USER ---------- */
+
+const createRole = document.getElementById("createRole");
+const createClassRow = document.getElementById("createClassRow");
+
+function updateCreateForm() {
+
+    if (!createRole) return;
+
+    if (createRole.value === "student") {
+
+        createClassRow.style.display = "";
+
+    } else {
+
+        createClassRow.style.display = "none";
+
+    }
+
+}
+
+if (createRole) {
+
+    createRole.addEventListener("change", updateCreateForm);
+
+    updateCreateForm();
+
+}
+
+
+/* ---------- EDIT USER ---------- */
+
+document.querySelectorAll(".editRole").forEach(function(roleSelect){
+
+    function updateEditForm(){
+
+        const form = roleSelect.closest("form");
+
+        const classRow =
+            form.querySelector(".editClassRow");
+
+        if (roleSelect.value === "student") {
+
+            classRow.style.display = "";
+
+        }
+
+        else {
+
+            classRow.style.display = "none";
+
+        }
+
+    }
+
+    roleSelect.addEventListener("change", updateEditForm);
+
+    updateEditForm();
+
+});	
+
+});
+</script>
+
+{% endblock %}

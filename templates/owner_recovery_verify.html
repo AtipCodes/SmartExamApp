@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}
+Approve Owner Recovery
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5" style="max-width:700px;">
+
+    <h2>Owner Recovery Approval</h2>
+
+    <hr>
+
+    <p>
+        A recovery request has been verified.
+    </p>
+
+    <table class="table">
+
+        <tr>
+            <th>Requested IP</th>
+            <td>{{ recovery.requested_ip }}</td>
+        </tr>
+
+        <tr>
+            <th>Browser</th>
+            <td>{{ recovery.requested_browser }}</td>
+        </tr>
+
+        <tr>
+            <th>Expires</th>
+            <td>{{ recovery.expires_at }}</td>
+        </tr>
+
+    </table>
+
+    <form method="POST">
+
+        <button class="btn btn-success">
+            Approve Recovery
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

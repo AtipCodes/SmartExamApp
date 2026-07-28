@@ -1,0 +1,1851 @@
+﻿{% extends 'base.html' %} 
+{% block title %} Dashboard {% endblock %}
+{% block content %}
+
+{% if user.role == 'student' %}
+
+<div class="dashboard-hero">
+    <div class="hero-left">
+        <span class="hero-badge">Student Dashboard</span>
+        <h1>
+            Welcome back,
+            {{ (user.first_name ~ ' ' ~ user.last_name).strip() if user.first_name or user.last_name else user.username }}
+        </h1>
+        <p>Continue your examinations, browse subjects and monitor your academic progress from one place.</p>
+        <div class="hero-buttons">
+            <a href="#groups" class="hero-btn">Browse Subjects</a>
+            {% if sessions %}
+            <a href="#resume" class="hero-btn secondary">Resume Exams</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="hero-right">
+        <div class="today-card">
+            <div class="today-label">TODAY</div>
+            <div class="today-day">{{ now.strftime("%A") }}</div>
+            <div class="today-date">{{ now.strftime("%d %B %Y") }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <!-- Available Subjects -->
+    <div class="stat-card blue">
+        <div class="stat-top">
+            <div class="stat-icon">📚</div>
+            <div class="stat-number">{{ subjects|length }}</div>
+        </div>
+        <div class="stat-label">Available Subjects</div>
+        <div class="stat-progress">
+            <div class="stat-progress-fill" style="width:90%;"></div>
+        </div>
+    </div>
+
+    <!-- Running Exams -->
+    <div class="stat-card green">
+        <div class="stat-top">
+            <div class="stat-icon">📝</div>
+            <div class="stat-number">{{ sessions|length }}</div>
+        </div>
+        <div class="stat-label">Running Exams</div>
+        <div class="stat-progress">
+            <div class="stat-progress-fill" style="width:45%;"></div>
+        </div>
+    </div>
+
+    <!-- Results -->
+    <div class="stat-card orange">
+        <div class="stat-top">
+            <div class="stat-icon">📊</div>
+            <div class="stat-number">{{ results.total if results else 0 }}</div>
+        </div>
+        <div class="stat-label">Published Results</div>
+        <div class="stat-progress">
+            <div class="stat-progress-fill" style="width:70%;"></div>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="stat-card purple">
+        <div class="stat-top">
+            <div class="stat-icon">💬</div>
+            <div class="stat-number">{{ unread_count }}</div>
+        </div>
+        <div class="stat-label">New Messages</div>
+        <div class="stat-progress">
+            <div class="stat-progress-fill" style="width:25%;"></div>
+        </div>
+    </div>
+</div>
+
+<div class="quick-actions">
+    <a href="#groups" class="quick-btn">
+        <span class="quick-icon">📚</span>
+        <span>
+            <strong>Browse Subjects</strong><br>
+            <small>View all available subjects</small>
+        </span>
+    </a>
+
+    {% if sessions %}
+    <a href="#resume" class="quick-btn">
+        <span class="quick-icon">▶</span>
+        <span>
+            <strong>Resume Exams</strong><br>
+            <small>Continue unfinished exams</small>
+        </span>
+    </a>
+    {% endif %}
+
+    <a href="#results" class="quick-btn">
+        <span class="quick-icon">📈</span>
+        <span>
+            <strong>Results</strong><br>
+            <small>View previous scores</small>
+        </span>
+    </a>
+
+    <a href="{{ url_for('chat', receiver_id=1) }}" class="quick-btn">
+        <span class="quick-icon">💬</span>
+        <span>
+            <strong>Support Chat</strong><br>
+            <small>Contact your administrator</small>
+        </span>
+    </a>
+</div>
+
+<!-- Search -->
+<form method="get" class="search-card">
+    <input type="text" name="search" placeholder="Search subject groups..." value="{{ search_query }}">
+    <button type="submit">🔍 Search</button>
+    <a href="{{ url_for('dashboard') }}">
+        <button type="button">Reset</button>
+    </a>
+</form>
+
+<!-- ========================= -->
+<!-- SUBJECT EXPLORER -->
+<!-- ========================= -->
+
+<div id="groups"></div>
+
+<div class="explorer-card">
+    <div class="explorer-header">
+        <div>
+            <h2>📂 Subject Explorer</h2>
+            <p>Select a subject below to begin an examination or continue learning.</p>
+        </div>
+        <button type="button" class="expand-all">Expand All</button>
+    </div>
+
+    <div class="explorer-body">
+
+{% macro render_group_dropdown(group) %}
+
+<div class="folder">
+    <button class="folder-toggle">
+        <div class="folder-left">
+            <div class="folder-circle">📁</div>
+            <div>
+                <div class="folder-name">{{ group.name or "Unnamed Group" }}</div>
+                <small class="folder-subtitle">Subject Group</small>
+            </div>
+        </div>
+
+        <span class="arrow">▶</span>
+    </button>
+    <div class="folder-content">
+        {% if group.subjects %}
+            {% for subj in group.subjects %}
+                {% set label = subj.label if subj.label else "" %}
+                {% set upper = label|upper %}
+
+                <a href="{{ url_for('subject_options', subject_id=subj.id) }}" class="subject-link">
+                    <div class="subject-left">
+                        <div class="subject-icon-box">📘</div>
+                        <div>
+                            <div class="subject-title">{{ subj.name }}</div>
+                            <small class="subject-subtitle">Click to open</small>
+                        </div>
+                    </div>
+
+                    {% if label %}
+                        {% if "EXAM" in upper %}
+                            <span class="badge exam">Exam</span>
+                        {% elif "1ST" in upper %}
+                            <span class="badge ca">1st CA</span>
+                        {% elif "2ND" in upper %}
+                            <span class="badge ca">2nd CA</span>
+                        {% elif "3RD" in upper %}
+                            <span class="badge ca">3rd CA</span>
+                        {% else %}
+                            <span class="badge">{{ label }}</span>
+                        {% endif %}
+                    {% endif %}
+                </a>
+            {% endfor %}
+        {% else %}
+            <div class="empty-folder">📂 No subjects available in this group.</div>
+        {% endif %}
+
+        {% for child in group.children %}
+            {{ render_group_dropdown(child) }}
+        {% endfor %}
+    </div>
+</div>
+
+{% endmacro %}
+
+{% for g in roots %}
+    {% if not g.parent_id %}
+        {{ render_group_dropdown(g) }}
+    {% endif %}
+{% endfor %}
+
+    </div>
+</div>
+
+<!-- ACTIVE SESSIONS -->
+
+{% if sessions %}
+
+<div id="resume"></div>
+
+<div class="section-card">
+    <div class="section-title">📝 Resume Your Exams</div>
+
+    <div class="session-grid">
+        {% for sess in sessions %}
+
+        <div class="session-card">
+            <div class="session-header">
+                <div class="session-subject">
+                    <div class="subject-avatar">📘</div>
+                    <div>
+                        <h3>{{ sess.subject.name if sess.subject else "Unknown Subject" }}</h3>
+                        <small>Examination Session</small>
+                    </div>
+                </div>
+
+                {% if sess.paused %}
+                    <span class="status-badge paused">⏸ Paused</span>
+                {% else %}
+                    <span class="status-badge running">▶ Running</span>
+                {% endif %}
+            </div>
+
+            <div class="session-divider"></div>
+
+            <div class="session-info-grid">
+                <div class="info-box">
+                    <span class="info-title">Remaining Time</span>
+                    <strong>{{ sess.remaining_seconds|timefmt }}</strong>
+                </div>
+
+                <div class="info-box">
+                    <span class="info-title">Status</span>
+                    <strong>
+                        {% if sess.paused %}
+                            Paused
+                        {% else %}
+                            Active
+                        {% endif %}
+                    </strong>
+                </div>
+            </div>
+
+            <div class="exam-progress">
+                <div class="exam-progress-fill"></div>
+            </div>
+
+            <form method="post" action="{{ url_for('session_action', session_id=sess.id) }}">
+                <div class="session-buttons">
+
+                    {% if sess.paused %}
+                        <input type="hidden" name="action" value="resume">
+                        <button class="resume-btn">▶ Resume Exam</button>
+                    {% else %}
+                        <a href="{{ url_for('subject_options', subject_id=sess.subject_id) }}" class="continue-btn">
+                            Continue
+                        </a>
+
+                        <input type="hidden" name="action" value="pause">
+                        <button class="pause-btn">Pause</button>
+                    {% endif %}
+
+                </div>
+            </form>
+        </div>
+
+        {% endfor %}
+    </div>
+</div>
+
+{% endif %}
+
+<!-- ========================= -->
+<!-- RESULTS -->
+<!-- ========================= -->
+
+<div id="results"></div>
+
+<div class="section-card">
+    <div class="section-title">📊 Your Results</div>
+
+{% if results and results.items %}
+
+<div class="results-table-wrapper">
+<table class="results-table">
+    <thead>
+        <tr>
+            <th>Subject</th>
+            <th>Objective</th>
+            <th>Theory</th>
+            <th>Assessment</th>
+            <th>Date</th>
+            <th></th>
+        </tr>
+    </thead>
+
+    <tbody>	
+    {% for r in results.items %}
+        {% set label = r.subject.label if r.subject and r.subject.label else '' %}
+        {% set upper = label|upper %}
+
+        <tr class="{% if r.hidden %}opac{% endif %}">
+            <td>
+                <strong>{{ r.subject.name if r.subject else "N/A" }}</strong><br>
+
+                {% if "EXAM" in upper %}
+                    <span class="badge exam">Exam</span>
+                {% elif "1ST" in upper %}
+                    <span class="badge ca">1st CA</span>
+                {% elif "2ND" in upper %}
+                    <span class="badge ca">2nd CA</span>
+                {% elif "3RD" in upper %}
+                    <span class="badge ca">3rd CA</span>
+                {% elif label %}
+                    <span class="badge">{{ label }}</span>
+                {% endif %}
+            </td>
+
+            <td>
+                <strong>{{ r.score }}/{{ r.total }}</strong>
+            </td>
+
+            <td>
+                {% if r.theory_score is not none %}
+                    {{ r.theory_score }}
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td>
+                {% if "EXAM" in upper %}
+                    Examination
+                {% elif "1ST" in upper %}
+                    Continuous Assessment
+                {% elif "2ND" in upper %}
+                    Continuous Assessment
+                {% elif "3RD" in upper %}
+                    Continuous Assessment
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+
+            <td>
+                {{ r.taken_at.strftime('%d %b %Y') }}<br>
+                <small>{{ r.taken_at.strftime('%I:%M %p') }}</small>
+            </td>
+
+            <td>
+                <a class="action-btn" href="{{ url_for('toggle_result', result_id=r.id) }}">
+                    {{ "Unhide" if r.hidden else "Hide" }}
+                </a>
+            </td>
+        </tr>
+
+    {% endfor %}
+
+    </tbody>
+</table>
+</div>
+
+{% else %}
+
+<div class="empty-state">
+    <div class="empty-icon">📊</div>
+    <h3>No Results Yet</h3>
+    <p>Your completed examinations will appear here.</p>
+</div>
+
+{% endif %}
+
+</div>
+
+<!-- ==========================================
+     HELP & ACCOUNT
+=========================================== -->
+
+<div class="dashboard-bottom">
+
+    <div class="help-card">
+        <div class="help-icon">💬</div>
+
+        <div class="help-content">
+            <h3>Need Assistance?</h3>
+
+            <p>
+                If you're experiencing any issues with an examination,
+                results or your account, you can contact the administrator
+                directly through the support chat.
+            </p>
+
+            {% if unread_count > 0 %}
+            <div class="message-alert">
+                🔔 You have <strong>{{ unread_count }}</strong>
+                new message{{ '' if unread_count == 1 else 's' }}.
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="help-actions">
+            <a href="{{ url_for('chat', receiver_id=1) }}" class="support-btn">
+                Open Support Chat
+            </a>
+        </div>
+    </div>
+
+    <div class="dashboard-footer">
+        <div class="footer-left">
+            <h4>Exam Portal</h4>
+
+            <p>
+                Logged in as
+                <strong>
+                    {{ (user.first_name ~ ' ' ~ user.last_name).strip() if user.first_name or user.last_name else user.username }}
+                </strong>
+                (Student)
+            </p>
+        </div>
+
+        <div class="footer-right">
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                Logout
+            </a>
+        </div>
+    </div>
+
+</div>
+
+{% elif user.role in ['global_admin','admin','subadmin'] %}
+
+<div class="admin-hero">
+    <div class="admin-hero-left">
+        <span class="hero-badge">
+            {{ "Administrator" if user.role=="global_admin" 
+			else "Institutional Admin" if user.role=="admin" 
+			else "Sub Administrator" }}
+        </span>
+
+        <h1>
+            Welcome,
+            {{ (user.first_name ~ ' ' ~ user.last_name).strip() if user.first_name or user.last_name else user.username }}
+        </h1>
+
+        <p>
+            Manage users, examinations, subjects, question banks and
+            student performance from one central dashboard.
+        </p>
+    </div>
+
+    <div class="admin-hero-right">
+        <div class="today-card">
+            <div class="today-label">TODAY</div>
+            <div class="today-day">{{ now.strftime("%A") }}</div>
+            <div class="today-date">{{ now.strftime("%d %B %Y") }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-actions">
+
+{% if user.role=="admin" %}
+<a href="{{ url_for('manage_users') }}" class="admin-action">
+    <div class="action-header">
+        <div class="action-emoji">👥</div>
+        <span class="action-tag admin-tag">ADMIN</span>
+    </div>
+
+    <h3>Manage Users</h3>
+
+    <p>Create, edit, assign roles and manage student and staff accounts.</p>
+
+    <div class="action-footer">Open →</div>
+</a>
+{% endif %}
+<a href="{{ url_for('manage_subjects') }}" class="admin-action">
+    <div class="action-header">
+        <div class="action-emoji">📘</div>
+        <span class="action-tag">SUBJECTS</span>
+    </div>
+
+    <h3>Manage Subjects</h3>
+
+    <p>Create subjects, edit durations and configure examinations.</p>
+
+    <div class="action-footer">Open →</div>
+</a>
+
+<a href="{{ url_for('manage_groups') }}" class="admin-action">
+    <div class="action-header">
+        <div class="action-emoji">📂</div>
+        <span class="action-tag">GROUPS</span>
+    </div>
+
+    <h3>Manage Groups</h3>
+
+    <p>Organize subjects into classes, terms and examination groups.</p>
+
+    <div class="action-footer">Open →</div>
+</a>
+
+<a href="{{ url_for('upload_questions') }}" class="admin-action">
+    <div class="action-header">
+        <div class="action-emoji">📝</div>
+        <span class="action-tag">IMPORT</span>
+    </div>
+
+    <h3>Upload Questions</h3>
+
+    <p>Upload TXT, CSV and Excel question banks.</p>
+
+    <div class="action-footer">Open →</div>
+</a>
+
+<a href="{{ url_for('export_scores') }}" class="admin-action">
+    <div class="action-header">
+        <div class="action-emoji">📊</div>
+        <span class="action-tag">EXPORT</span>
+    </div>
+
+    <h3>Export Scores</h3>
+
+    <p>Download student examination reports and scores.</p>
+
+    <div class="action-footer">Open →</div>
+</a>	
+
+{% if user.role=="admin" %}
+<a href="{{ url_for('admin_chat_dashboard') }}" class="admin-action">
+    <div class="action-header">
+        <div class="action-emoji">💬</div>
+        {% if unread_count %}
+        <span class="notification-dot">{{ unread_count }}</span>
+        {% endif %}
+    </div>
+    <h3>Support Messages</h3>
+    <p>View conversations between students and administrators.</p>
+    <div class="action-footer">Open →</div>
+</a>
+{% endif %}
+
+<a href="{{ url_for('logout') }}" class="admin-action logout-card">
+    <div class="action-header">
+        <div class="action-emoji">🚪</div>
+    </div>
+    <h3>Logout</h3>
+    <p>Sign out securely from the administration panel.</p>
+    <div class="action-footer">Logout →</div>
+</a>
+</div>
+
+<!-- ==========================================
+     ADMIN INFORMATION PANEL
+========================================== -->
+
+<div class="admin-info-grid">
+    <div class="admin-info-card">
+        <div class="info-card-header">
+            <span class="info-icon">🛡️</span>
+            <h3>Administrator</h3>
+        </div>
+        <div class="info-list">
+            <div class="info-row">
+                <span>Name</span>
+                <strong>{{ (user.first_name ~ ' ' ~ user.last_name).strip() if user.first_name or user.last_name else user.username }}</strong>
+            </div>
+            <div class="info-row">
+                <span>Role</span>
+                <strong>{{ user.role|title }}</strong>
+            </div>
+            <div class="info-row">
+                <span>Status</span>
+                <span class="online-badge">● Online</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-info-card">
+        <div class="info-card-header">
+            <span class="info-icon">⚡</span>
+            <h3>Quick Tips</h3>
+        </div>
+        <ul class="tips-list">
+            <li>Review newly submitted examinations regularly.</li>
+            <li>Upload questions before opening exams.</li>
+            <li>Archive unused subjects instead of deleting them.</li>
+            <li>Export student results periodically for backup.</li>
+            <li>Monitor messages from students.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- ==========================================
+     STUDENT RESULTS OVERVIEW
+========================================== -->
+
+{% if students %}
+<div class="admin-section" id="student-results">
+    <div class="section-header">
+        <div>
+            <h2>📊 Recent Student Results</h2>
+            <p>Latest examination records from students.</p>
+        </div>
+    </div>
+
+    <div class="results-table-wrapper">
+        <table class="admin-results-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Subject</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student, res_list in students.items() %}
+                    {% for r in res_list %}
+                    <tr>
+                        <td>
+                            <div class="student-cell">
+                                <div class="student-avatar">👤</div>
+                                <div>
+                                    <strong>{{ (student.first_name ~ ' ' ~ student.last_name).strip() if student.first_name or student.last_name else student.username }}</strong><br>
+                                    <small>{{ student.username }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ r.subject.name }}</td>
+                        <td><span class="score-pill">{{ r.score }} / {{ r.total }}</span></td>
+                        <td>
+                            {{ r.taken_at.strftime('%d %b %Y') }}<br>
+                            <small>{{ r.taken_at.strftime('%I:%M %p') }}</small>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+
+<div class="admin-section">
+    <div class="empty-admin">
+        <div class="empty-admin-icon">📊</div>
+        <h3>No Student Results Yet</h3>
+        <p>Student examination records will appear here after examinations have been completed.</p>
+    </div>
+</div>
+
+{% endif %}
+
+<div class="admin-stats">
+    <div class="admin-stat blue">
+        <div class="stat-emoji">👨‍🎓</div>
+        <div>
+            <h2>{{ student_count }}</h2>
+            <p>Students</p>
+        </div>
+    </div>
+
+    <div class="admin-stat green">
+        <div class="stat-emoji">📘</div>
+        <div>
+            <h2>{{ subject_count }}</h2>
+            <p>Subjects</p>
+        </div>
+    </div>
+
+    <div class="admin-stat orange">
+        <div class="stat-emoji">📂</div>
+        <div>
+            <h2>{{ group_count }}</h2>
+            <p>Groups</p>
+        </div>
+    </div>
+
+    <div class="admin-stat purple">
+        <div class="stat-emoji">📊</div>
+        <div>
+            <h2>{{ result_count }}</h2>
+            <p>Results</p>
+        </div>
+    </div>
+</div>
+<!-- ==========================================
+     SYSTEM OVERVIEW
+========================================== -->
+
+<div class="admin-overview-grid">
+    <div class="overview-card">
+        <div class="overview-icon blue">📘</div>
+        <div class="overview-content">
+            <h3>Subjects</h3>
+            <p>{{ subject_count }} subject{{ '' if subject_count == 1 else 's' }} currently available.</p>
+            <a href="{{ url_for('manage_subjects') }}">Manage Subjects →</a>
+        </div>
+    </div>
+
+    <div class="overview-card">
+        <div class="overview-icon orange">📂</div>
+        <div class="overview-content">
+            <h3>Subject Groups</h3>
+            <p>{{ group_count }} group{{ '' if group_count == 1 else 's' }} configured.</p>
+            <a href="{{ url_for('manage_groups') }}">Manage Groups →</a>
+        </div>
+    </div>
+
+    <div class="overview-card">
+        <div class="overview-icon green">💬</div>
+        <div class="overview-content">
+            <h3>Messages</h3>
+            <p>{{ unread_count }} unread message{{ '' if unread_count == 1 else 's' }}.</p>
+            <a href="{{ url_for('admin_chat_dashboard') }}">Open Messages →</a>
+        </div>
+    </div>
+
+    <div class="overview-card">
+        <div class="overview-icon purple">📊</div>
+        <div class="overview-content">
+            <h3>Results</h3>
+            <p>{{ result_count }} examination result{{ '' if result_count == 1 else 's' }} recorded.</p>
+            <a href="#student-results">View Results →</a>
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('logout') }}">Logout</a>
+{% endif %}
+
+<style>
+.action-header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:18px;
+}
+
+.action-tag{
+background:#eef4ff;
+color:#2563eb;
+padding:6px 12px;
+border-radius:30px;
+font-size:11px;
+font-weight:700;
+letter-spacing:.8px;
+}
+
+.admin-tag{
+background:#fff1e6;
+color:#ea580c;
+}
+
+.action-footer{
+margin-top:22px;
+font-weight:700;
+color:#2563eb;
+}
+
+.notification-dot{
+background:#dc3545;
+color:white;
+min-width:28px;
+height:28px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:12px;
+font-weight:bold;
+padding:0 6px;
+}
+
+/* ==================================
+   OVERVIEW GRID
+================================== */
+
+.admin-overview-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:22px;
+margin-bottom:35px;
+}
+
+.overview-card{
+display:flex;
+gap:18px;
+align-items:flex-start;
+background:white;
+padding:24px;
+border-radius:18px;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+transition:.3s;
+}
+
+.overview-card:hover{
+transform:translateY(-6px);
+}
+
+.overview-icon{
+width:60px;
+height:60px;
+border-radius:16px;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:28px;
+flex-shrink:0;
+}
+
+.overview-icon.blue{
+background:#e8f1ff;
+}
+
+.overview-icon.orange{
+background:#fff3e8;
+}
+
+.overview-icon.green{
+background:#eaf9ef;
+}
+
+.overview-icon.purple{
+background:#f3ebff;
+}
+
+.overview-content{
+flex:1;
+}
+
+.overview-content h3{
+margin:0 0 8px;
+}
+
+.overview-content p{
+color:#666;
+margin-bottom:14px;
+line-height:1.6;
+}
+
+.overview-content a{
+color:#0d6efd;
+text-decoration:none;
+font-weight:600;
+}
+
+.overview-content a:hover{
+text-decoration:underline;
+}
+.admin-stats{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:22px;
+margin:30px 0;
+}
+
+.admin-stat{
+background:white;
+border-radius:18px;
+padding:25px;
+display:flex;
+align-items:center;
+gap:18px;
+box-shadow:0 8px 22px rgba(0,0,0,.08);
+transition:.3s;
+}
+
+.admin-stat:hover{
+transform:translateY(-6px);
+}
+
+.stat-emoji{
+width:65px;
+height:65px;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:30px;
+border-radius:16px;
+background:#eef4ff;
+}
+
+.admin-stat h2{
+margin:0;
+font-size:34px;
+}
+
+.admin-stat p{
+margin-top:6px;
+color:#777;
+}
+
+.admin-stat.blue{
+border-left:5px solid #0d6efd;
+}
+
+.admin-stat.green{
+border-left:5px solid #198754;
+}
+
+.admin-stat.orange{
+border-left:5px solid #fd7e14;
+}
+
+.admin-stat.purple{
+border-left:5px solid #6f42c1;
+}
+
+/* ===================================
+   ADMIN INFO CARDS
+=================================== */
+
+.admin-info-grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:25px;
+margin-bottom:35px;
+}
+
+.admin-info-card{
+background:white;
+border-radius:18px;
+padding:26px;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+.info-card-header{
+display:flex;
+align-items:center;
+gap:12px;
+margin-bottom:22px;
+}
+
+.info-icon{
+width:48px;
+height:48px;
+border-radius:12px;
+background:#eef4ff;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+}
+
+.info-list{
+display:flex;
+flex-direction:column;
+gap:18px;
+}
+
+.info-row{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding-bottom:12px;
+border-bottom:1px solid #f1f1f1;
+}
+
+.online-badge{
+color:#198754;
+font-weight:700;
+}
+
+.tips-list{
+margin:0;
+padding-left:20px;
+}
+
+.tips-list li{
+margin-bottom:14px;
+color:#555;
+line-height:1.6;
+}
+
+/* ==========================================
+   ADMIN RESULTS
+========================================== */
+
+.admin-section{
+background:white;
+padding:28px;
+border-radius:18px;
+margin-bottom:35px;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+
+.section-header{
+margin-bottom:20px;
+}
+
+.section-header h2{
+margin:0;
+}
+
+.section-header p{
+color:#777;
+margin-top:8px;
+}
+
+.admin-results-table{
+width:100%;
+border-collapse:collapse;
+}
+
+.admin-results-table thead{
+background:#0d6efd;
+color:white;
+}
+
+.admin-results-table th{
+padding:16px;
+text-align:left;
+}
+
+.admin-results-table td{
+padding:16px;
+border-bottom:1px solid #ececec;
+}
+
+.admin-results-table tbody tr{
+transition:.25s;
+}
+
+.admin-results-table tbody tr:hover{
+background:#f8fbff;
+}
+
+.student-cell{
+display:flex;
+align-items:center;
+gap:15px;
+}
+
+.student-avatar{
+width:48px;
+height:48px;
+border-radius:50%;
+background:#eef4ff;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:20px;
+}
+.score-pill{
+    background:#198754;
+    color:white;
+    padding:6px 12px;
+    border-radius:30px;
+    font-weight:600;
+}
+.empty-admin{
+    text-align:center;
+    padding:70px 20px;
+}
+.empty-admin-icon{
+    font-size:60px;
+    margin-bottom:18px;
+}
+.admin-hero{
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:40px;
+background:linear-gradient(135deg,#0f172a,#1e3a8a);
+color:white;
+padding:40px;
+border-radius:20px;
+margin-bottom:30px;
+}
+.admin-hero-left{
+flex:1;
+}
+.admin-hero-left h1{
+margin:18px 0 10px;
+font-size:38px;
+}
+.admin-hero-left p{
+max-width:650px;
+line-height:1.7;
+opacity:.92;
+}
+.admin-actions{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:22px;
+margin-bottom:35px;
+}
+.admin-action{
+background:white;
+padding:28px;
+border-radius:18px;
+text-decoration:none;
+color:#333;
+box-shadow:0 8px 25px rgba(0,0,0,.08);
+transition:.3s;
+}
+.admin-action:hover{
+transform:translateY(-8px);
+}
+.action-emoji{
+font-size:40px;
+margin-bottom:15px;
+}
+.admin-action h3{
+margin-bottom:10px;
+}
+.admin-action p{
+color:#777;
+line-height:1.6;
+}
+.logout-card{
+border-left:5px solid #dc3545;
+}
+.dashboard-hero{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:40px;
+    background:linear-gradient(135deg,#0d6efd,#2563eb);
+    color:white;
+    padding:40px;
+    border-radius:18px;
+    margin-bottom:30px;
+    box-shadow:0 10px 30px rgba(13,110,253,.20);
+}
+.hero-left{
+    flex:1;
+}
+.hero-left h1{
+    font-size:38px;
+    margin:18px 0 12px;
+}
+.hero-left p{
+    max-width:650px;
+    line-height:1.7;
+    opacity:.95;
+}
+.hero-badge{
+    display:inline-block;
+    background:rgba(255,255,255,.18);
+    padding:8px 16px;
+    border-radius:30px;
+    font-size:13px;
+    letter-spacing:.5px;
+}
+.hero-buttons{
+    display:flex;
+    gap:15px;
+    margin-top:28px;
+    flex-wrap:wrap;
+}
+.hero-btn{
+    text-decoration:none;
+    background:white;
+    color:#0d6efd;
+    padding:14px 24px;
+    border-radius:10px;
+    font-weight:600;
+    transition:.25s;
+}
+.hero-btn:hover{
+    transform:translateY(-3px);
+}
+.hero-btn.secondary{
+    background:rgba(255,255,255,.18);
+    color:white;
+}
+.today-card{
+    background:rgba(255,255,255,.15);
+    backdrop-filter:blur(10px);
+    padding:30px;
+    border-radius:18px;
+    min-width:240px;
+    text-align:center;
+}
+.today-label{
+    letter-spacing:2px;
+    font-size:12px;
+}
+.today-day{
+    margin-top:15px;
+    font-size:30px;
+    font-weight:bold;
+}
+.today-date{
+    margin-top:10px;
+    opacity:.9;
+}
+.dashboard-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:25px;
+    background:#fff;
+    padding:30px;
+    border-radius:16px;
+    margin-bottom:30px;
+    box-shadow:0 5px 18px rgba(0,0,0,.08);
+}
+.welcome-section{
+    flex:1;
+}
+.welcome-badge{
+    display:inline-block;
+    background:#eef4ff;
+    color:#0d6efd;
+    padding:6px 14px;
+    border-radius:30px;
+    font-size:13px;
+    font-weight:600;
+}
+.dashboard-header h1{
+    margin:12px 0 8px;
+    font-size:34px;
+    font-weight:700;
+}
+.dashboard-subtitle{
+    color:#666;
+    font-size:16px;
+    margin:0;
+}
+.dashboard-date-card{
+    min-width:220px;
+    background:#f8f9fb;
+    border-radius:14px;
+    text-align:center;
+    padding:20px;
+}
+.date-title{
+    color:#888;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+}
+.date-day{
+    margin-top:10px;
+    font-size:28px;
+    font-weight:bold;
+}
+.date-full{
+    margin-top:8px;
+    color:#666;
+}
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+.stat-card{
+    background:#fff;
+    border-radius:14px;
+    padding:22px;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+    transition:.25s;
+    border-left:6px solid #0d6efd;
+}
+.stat-card:hover{
+    transform:translateY(-5px);
+}
+.stat-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.stat-icon{
+    font-size:34px;
+}
+.stat-number{
+    font-size:34px;
+    font-weight:bold;
+}
+.stat-label{
+    margin-top:18px;
+    color:#666;
+    font-size:15px;
+}
+.stat-card.green{
+    border-left-color:#198754;
+}
+.stat-card.orange{
+    border-left-color:#fd7e14;
+}
+.stat-card.purple{
+    border-left-color:#6f42c1;
+}
+.quick-actions{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:18px;
+    margin-bottom:30px;
+}
+.quick-btn{
+    display:flex;
+    gap:18px;
+    align-items:center;
+    background:#fff;
+    color:#222;
+    padding:20px;
+    border-radius:14px;
+    text-decoration:none;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+    transition:.25s;
+}
+.quick-btn:hover{
+    transform:translateY(-4px);
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+.quick-icon{
+    font-size:34px;
+}
+.quick-btn strong{
+    font-size:17px;
+}
+.quick-btn small{
+    color:#777;
+}
+.search-card{
+    display:flex;
+    gap:12px;
+    background:#fff;
+    padding:20px;
+    border-radius:14px;
+    margin-bottom:30px;
+    box-shadow:0 4px 14px rgba(0,0,0,.08);
+}
+.search-card input{
+    flex:1;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:12px;
+}
+.search-card button{
+    border:none;
+    background:#0d6efd;
+    color:#fff;
+    padding:12px 20px;
+    border-radius:8px;
+    cursor:pointer;
+}
+.search-card button:hover{
+    background:#0b5ed7;
+}
+.dropdown-btn {
+  background: #007BFF;
+  color: white;
+  padding: 8px;
+  border: none;
+  cursor: pointer;
+  margin-top: 5px;
+}
+.dropdown-container {
+  display: none;
+  margin-left: 15px;
+}
+.group-block {
+  margin-top: 5px;
+}
+tr.opac td:not(:last-child) { opacity: 0.05; }
+.quick-btn:hover{
+    transform:translateY(-4px);
+}
+.quick-btn strong{
+    font-size:17px;
+}
+.quick-btn small{
+    color:#777;
+}
+.search-card input{
+    flex:1;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:12px;
+}
+.search-card button{
+    border:none;
+    background:#0d6efd;
+    color:white;
+    border-radius:8px;
+    padding:12px 20px;
+    cursor:pointer;
+}
+.folder{
+    margin-bottom:15px;
+}
+.folder-toggle{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:#f8f9fb;
+    border:none;
+    border-radius:12px;
+    padding:15px 18px;
+    cursor:pointer;
+    transition:.25s;
+}
+.folder-toggle:hover{
+    background:#eef4ff;
+    transform:translateX(3px);
+}
+.folder-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+.folder-icon{
+    font-size:22px;
+}
+.folder-name{
+    font-weight:600;
+    font-size:16px;
+}
+.folder-circle{
+    width:48px;
+    height:48px;
+    border-radius:50%;
+    background:#eef5ff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:22px;
+}
+.folder-subtitle{
+    color:#777;
+    font-size:12px;
+}
+.subject-icon-box{
+    width:42px;
+    height:42px;
+    border-radius:10px;
+    background:#eef5ff;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:20px;
+}
+.subject-title{
+    font-weight:600;
+}
+.subject-subtitle{
+    color:#888;
+}
+.folder-toggle{
+    box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.subject-link{
+    box-shadow:0 2px 6px rgba(0,0,0,.05);
+    background:white;
+}
+.subject-link:hover{
+    transform:translateX(8px);
+    box-shadow:0 8px 20px rgba(0,0,0,.12);
+}
+.explorer-header h2{
+    margin:0;
+    font-size:24px;
+}
+.explorer-header p{
+    margin-top:6px;
+    opacity:.85;
+    font-size:14px;
+}
+.empty-folder{
+    background:#fafafa;
+    border:1px dashed #ddd;
+    border-radius:10px;
+    padding:15px;
+}
+.arrow{
+    font-size:14px;
+    transition:.3s;
+}
+.folder-content{
+    display:none;
+    margin-top:10px;
+    margin-left:30px;
+    border-left:2px dashed #d9e2ef;
+    padding-left:18px;
+}
+.subject-link{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    text-decoration:none;
+    color:#333;
+    padding:12px 15px;
+    border-radius:10px;
+    margin-bottom:8px;
+    transition:.25s;
+}
+.subject-link:hover{
+    background:#f2f8ff;
+    transform:translateX(5px);
+}
+.subject-left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+.subject-icon{
+    font-size:18px;
+}
+.badge{
+    padding:5px 10px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+    background:#ececec;
+}
+.badge.exam{
+    background:#198754;
+    color:white;
+}
+.badge.ca{
+    background:#ffc107;
+    color:#333;
+}
+.empty-folder{
+    color:#888;
+    padding:12px;
+    font-style:italic;
+}
+.results-table-wrapper{
+    overflow-x:auto;
+}
+.results-table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+}
+.results-table thead{
+    background:#0d6efd;
+    color:white;
+}
+.results-table th{
+    padding:15px;
+    text-align:left;
+}
+.results-table td{
+    padding:15px;
+    border-bottom:1px solid #ececec;
+}
+.results-table tbody tr{
+    transition:.2s;
+}
+.results-table tbody tr:hover{
+    background:#f8fbff;
+}
+.action-btn{
+    display:inline-block;
+    background:#0d6efd;
+    color:white;
+    padding:8px 14px;
+    border-radius:8px;
+    text-decoration:none;
+    font-size:13px;
+}
+.action-btn:hover{
+    background:#0b5ed7;
+}
+.empty-state{
+    text-align:center;
+    padding:70px 20px;
+}
+.empty-icon{
+    font-size:55px;
+    margin-bottom:15px;
+}
+.empty-state h3{
+    margin-bottom:8px;
+}
+.empty-state p{
+    color:#777;
+}
+.session-divider{
+    height:1px;
+    background:#ececec;
+    margin:15px 0;
+}
+@media (max-width:900px){
+.dashboard-hero{
+    flex-direction:column;
+    text-align:center;
+}
+.hero-buttons{
+    justify-content:center;
+}
+.today-card{
+    width:100%;
+}
+}
+.stat-progress{
+    height:6px;
+    background:#edf2f7;
+    border-radius:30px;
+    overflow:hidden;
+    margin-top:18px;
+}
+.stat-progress-fill{
+    height:100%;
+    border-radius:30px;
+}
+.stat-card.blue .stat-progress-fill{
+    background:#0d6efd;
+}
+.stat-card.green .stat-progress-fill{
+    background:#198754;
+}
+.stat-card.orange .stat-progress-fill{
+    background:#fd7e14;
+}
+.stat-card.purple .stat-progress-fill{
+    background:#6f42c1;
+}
+/* ================================
+   Dashboard polish
+================================ */
+.stat-card{
+    position:relative;
+    overflow:hidden;
+}
+.stat-card::after{
+    content:"";
+    position:absolute;
+    top:-40px;
+    right:-40px;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:rgba(255,255,255,.08);
+}
+.stat-top{
+    margin-bottom:18px;
+}
+.folder-toggle{
+    position:relative;
+}
+.folder-toggle::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:0;
+    bottom:0;
+    width:5px;
+    background:#0d6efd;
+    border-radius:12px 0 0 12px;
+}
+.subject-link{
+    border:1px solid #eef2f7;
+}
+.subject-link:hover{
+    border-color:#cfe2ff;
+}
+.results-table{
+    border-radius:14px;
+    overflow:hidden;
+}
+.results-table th:first-child{
+    border-top-left-radius:14px;
+}
+.results-table th:last-child{
+    border-top-right-radius:14px;
+}
+.section-card{
+    background:#fff;
+    border-radius:16px;
+    padding:25px;
+    box-shadow:0 6px 20px rgba(0,0,0,.08);
+    margin-bottom:30px;
+}
+.section-title{
+    font-size:24px;
+    font-weight:700;
+    margin-bottom:20px;
+}
+.session-card{
+    background:#fff;
+    border:1px solid #edf2f7;
+}
+.session-card:hover{
+    border-color:#0d6efd;
+}
+.session-buttons button,
+.session-buttons a{
+    transition:.25s;
+}
+.resume-btn,
+.continue-btn,
+.pause-btn{
+    font-weight:600;
+}
+.empty-state{
+    background:#fff;
+    border-radius:14px;
+}
+/* ===========================
+   Dashboard Footer
+=========================== */
+.dashboard-bottom{
+    margin-top:40px;
+}
+.help-card{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:25px;
+    background:white;
+    padding:28px;
+    border-radius:18px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+    margin-bottom:25px;
+}
+.help-icon{
+    width:70px;
+    height:70px;
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#eef4ff;
+    font-size:34px;
+    flex-shrink:0;
+}
+.help-content{
+    flex:1;
+}
+.help-content h3{
+    margin-bottom:8px;
+}
+.help-content p{
+    color:#666;
+    line-height:1.6;
+}
+.message-alert{
+    margin-top:15px;
+    display:inline-block;
+    background:#fff3cd;
+    color:#856404;
+    padding:8px 14px;
+    border-radius:30px;
+    font-weight:600;
+}
+.support-btn{
+    display:inline-block;
+    background:#0d6efd;
+    color:white;
+    text-decoration:none;
+    padding:14px 24px;
+    border-radius:10px;
+    font-weight:600;
+    transition:.3s;
+}
+.support-btn:hover{
+    background:#0b5ed7;
+    transform:translateY(-2px);
+}
+.dashboard-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:white;
+    padding:22px 28px;
+    border-radius:18px;
+    box-shadow:0 8px 25px rgba(0,0,0,.08);
+}
+.footer-left h4{
+    margin:0 0 6px;
+    color:#0d6efd;
+}
+.footer-left p{
+    margin:0;
+    color:#666;
+}
+.logout-btn{
+    display:inline-block;
+    background:#dc3545;
+    color:white;
+    text-decoration:none;
+    padding:12px 24px;
+    border-radius:10px;
+    font-weight:600;
+    transition:.3s;
+}
+.logout-btn:hover{
+    background:#bb2d3b;
+    transform:translateY(-2px);
+}
+@media(max-width:768px){
+.help-card,
+.dashboard-footer{
+    flex-direction:column;
+    text-align:center;
+}
+.help-actions{
+    width:100%;
+}
+.support-btn,
+.logout-btn{
+    display:block;
+    width:100%;
+}
+}
+</style>
+<script>
+document.querySelectorAll(".folder-toggle").forEach(btn=>{
+    btn.onclick=function(){
+		let body = this.nextElementSibling;
+		let arrow = this.querySelector(".arrow");
+		if(body.style.display==="block"){
+			body.style.display="none";
+			arrow.style.transform="rotate(0deg)";
+		}
+		else{
+			body.style.display="block";
+			arrow.style.transform="rotate(90deg)";
+		}
+    }
+});
+const expand=document.querySelector(".expand-all");
+if(expand){
+    let open=false;
+    expand.onclick=function(){
+        open=!open;
+        document.querySelectorAll(".folder-content").forEach(c=>{
+            c.style.display=open?"block":"none";
+        });
+        document.querySelectorAll(".arrow").forEach(a=>{
+            a.innerHTML=open?"▼":"▶";
+        });
+        this.innerHTML=open?"Collapse All":"Expand All";
+    }
+}
+</script>
+{% endblock %}

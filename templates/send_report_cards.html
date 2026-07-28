@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Send Report Cards</h2>
+
+<form method="POST">
+
+<h3>Select Students</h3>
+
+{% for s in students %}
+    <label>
+        <input type="checkbox" name="student_ids" value="{{ s.id }}">
+        {{ s.username }} ({{ s.email }})
+    </label><br>
+{% endfor %}
+
+<br>
+
+<h3>Manual Emails</h3>
+<textarea name="manual_emails" placeholder="email1@email.com, email2@email.com"></textarea>
+
+<br><br>
+
+<button type="submit">Send Report Cards</button>
+
+</form>
+
+{% endblock %}

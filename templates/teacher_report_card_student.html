@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Teacher Report Card Entry</title>
+
+</head>
+
+<body>
+
+<h2>
+
+Report Card Entry
+
+</h2>
+
+<p>
+
+<strong>{{ student.first_name }} {{ student.last_name }}</strong>
+
+</p>
+
+<p>
+
+Admission No:
+
+{{ student.username }}
+
+</p>
+
+<p>
+
+Class:
+
+{{ student.academic_class.name if student.academic_class else "" }}
+
+</p>
+
+<hr>
+
+<form method="POST">
+{% if locked %}
+<p style="color:red;font-weight:bold;">
+This report has been submitted and is locked.
+</p>
+{% endif %}
+
+<h3>
+
+Attendance Summary
+
+</h3>
+
+<label>
+
+Days School Opened
+
+</label>
+
+<input
+type="number"
+name="days_open"
+value="{{ remark.days_open or '' }}"
+{% if locked %}disabled{% endif %}
+required>
+
+<br><br>
+
+<label>
+
+Days Present
+
+</label>
+
+<input
+type="number"
+name="days_present"
+value="{{ remark.days_present or '' }}"
+{% if locked %}disabled{% endif %}
+required>
+
+<hr>
+
+<h3>
+
+Psychomotor / Affective
+
+</h3>
+
+<label>Punctuality</label>
+
+<select name="punctuality" {% if locked %}disabled{% endif %}>
+
+{% for x in [
+"Excellent",
+"Very Good",
+"Good",
+"Fair",
+"Poor"
+] %}
+
+<option
+value="{{ x }}"
+{% if remark.punctuality==x %}
+selected
+{% endif %}
+>
+
+{{ x }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+<br><br>
+
+
+<label>Honesty</label>
+
+<select name="honesty" {% if locked %}disabled{% endif %}>
+
+{% for x in ["Excellent","Very Good","Good","Fair","Poor"] %}
+
+<option value="{{ x }}"
+{% if remark.honesty == x %}selected{% endif %}>
+
+{{ x }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<label>Neatness</label>
+
+<select name="neatness" {% if locked %}disabled{% endif %}>
+
+{% for x in ["Excellent","Very Good","Good","Fair","Poor"] %}
+
+<option value="{{ x }}"
+{% if remark.neatness == x %}selected{% endif %}>
+
+{{ x }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<label>Leadership</label>
+
+<select name="leadership" {% if locked %}disabled{% endif %}>
+
+{% for x in ["Excellent","Very Good","Good","Fair","Poor"] %}
+
+<option value="{{ x }}"
+{% if remark.leadership == x %}selected{% endif %}>
+
+{{ x }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<label>Handwriting</label>
+
+<select name="handwriting" {% if locked %}disabled{% endif %}>
+
+{% for x in ["Excellent","Very Good","Good","Fair","Poor"] %}
+
+<option value="{{ x }}"
+{% if remark.handwriting == x %}selected{% endif %}>
+
+{{ x }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<label>Sports</label>
+
+<select name="sports" {% if locked %}disabled{% endif %}>
+
+{% for x in ["Excellent","Very Good","Good","Fair","Poor"] %}
+
+<option value="{{ x }}"
+{% if remark.sports == x %}selected{% endif %}>
+
+{{ x }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+<br><br>
+
+<h3>
+
+Teacher Comment
+
+</h3>
+
+<textarea
+name="class_teacher_comment"
+rows="6"
+cols="60"
+{% if locked %}disabled{% endif %}
+>{{ remark.class_teacher_comment or "" }}</textarea>
+
+<br><br>
+{% if not locked %}
+<button type="submit" name="action" value="save">
+    Save
+</button>
+<button type="submit" name="action" value="next">
+    Save & Next →
+</button>
+{% endif %}
+
+<a href="{{ url_for(
+'teacher_report_card',
+token=token,
+class_id=student.academic_class_id
+) }}">
+
+Cancel
+
+</a>
+<hr>
+
+{% if previous_student %}
+<a href="{{ url_for(
+    'teacher_report_card_student',
+    token=token,
+    student_id=previous_student.id
+) }}">
+← Previous Student
+</a>
+{% endif %}
+{% if previous_student and next_student %}
+|
+{% endif %}
+{% if next_student %}
+<a href="{{ url_for(
+    'teacher_report_card_student',
+    token=token,
+    student_id=next_student.id
+) }}">
+Next Student →
+</a>
+{% endif %}
+</form>
+
+</body>
+
+</html>

@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Manage Theory Questions{% endblock %}
+
+{% block content %}
+
+<h2>Theory Questions for {{ subject.name }}</h2>
+
+<!-- BULK DELETE FORM -->
+<form method="POST" action="{{ url_for('delete_theory_bulk') }}">
+    <!-- Select All checkbox -->
+    <input type="checkbox" id="select_all"> <label for="select_all">Select All</label>
+    <br><br>
+
+    <button type="submit" class="btn btn-danger">Delete Selected</button>
+    <br><br>
+
+    {% for q in questions %}
+        <div class="question-card">
+            <!-- Checkbox for bulk delete -->
+            <input type="checkbox" name="selected_ids" value="{{ q.id }}" class="bulk-checkbox">
+
+            <strong>{{ loop.index }}.</strong> {{ q.prompt }}
+
+            {% if q.image %}
+                <br><img src="/static/uploads/{{ q.image }}" width="150">
+            {% endif %}
+
+            {% if q.answer %}
+                <br><small><b>Answer:</b> {{ q.answer }}</small>
+            {% endif %}
+
+            <div style="margin-top:5px;">
+                <!-- Edit -->
+                <a href="{{ url_for('edit_theory', q_id=q.id) }}" class="btn btn-sm">Edit</a>
+
+                <!-- Delete single -->
+                <form method="POST" action="{{ url_for('delete_theory', q_id=q.id) }}" style="display:inline;">
+                    <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this question?')">Delete</button>
+                </form>
+            </div>
+        </div>
+        <hr>
+    {% endfor %}
+</form>
+
+<hr>
+
+<!-- CREATE NEW QUESTION -->
+<h3>Create New Question</h3>
+<form method="POST">
+    <textarea name="prompt" placeholder="Enter question text here" rows="3" cols="50" required></textarea><br><br>
+    <button type="submit" name="create_question">Create Question</button>
+</form>
+
+<style>
+.question-card {
+    background:#fefefe;
+    padding:12px;
+    border-radius:6px;
+    margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+</style>
+
+<!-- Select All Script -->
+<script>
+document.getElementById('select_all').addEventListener('click', function(){
+    const checkboxes = document.querySelectorAll('.bulk-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+});
+</script>
+
+{% endblock %}

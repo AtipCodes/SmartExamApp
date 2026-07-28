@@ -1,0 +1,861 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>🗑 Recycle Bin</h2>
+
+<!-- ================= RESULTS ================= -->
+<form method="post" action="{{ url_for('restore_results') }}">
+
+<button class="btn">♻ Restore Selected</button>
+<p>Results</P>
+<table border="1" style="width:100%;margin-top:10px;">
+
+<tr>
+<th>
+    <input type="checkbox" id="select_all_results">
+</th>
+<th>Username</th>
+<th>Subject</th>
+<th>Score</th>
+<th>Deleted At</th>
+<th>Auto Delete</th>
+</tr>
+
+{% for r in results %}
+<tr>
+<td>
+    <input type="checkbox" name="result_ids" value="{{ r.id }}">
+</td>
+<td>{{ r.user.username }}</td>
+<td>{{ r.subject.name }}</td>
+<td>{{ r.score }}</td>
+<td>{{ r.deleted_at.strftime("%Y-%m-%d") }}</td>
+<td>
+    <span class="countdown" data-time="{{ r.delete_timestamp }}"></span>
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</form>
+
+<!-- ================= RESULTS PAGINATION ================= -->
+
+<div style="margin-top:20px;">
+
+{% if results_total_pages > 1 %}
+
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+
+    {% if results_page > 1 %}
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=1, theory_page=theory_page) }}">
+           « First
+        </a>
+
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page-1, theory_page=theory_page) }}">
+           ‹ Prev
+        </a>
+    {% endif %}
+
+    <span>
+        Page {{ results_page }} of {{ results_total_pages }}
+    </span>
+
+    {% if results_page < results_total_pages %}
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page+1, theory_page=theory_page) }}">
+           Next ›
+        </a>
+
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_total_pages, theory_page=theory_page) }}">
+           Last »
+        </a>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+<hr style="margin:30px 0;">
+
+<!-- ================= THEORY SUBMISSIONS ================= -->
+<form method="post" action="{{ url_for('restore_theory_submissions') }}">
+
+<button class="btn">♻ Restore Selected Theory</button>
+<P>Theory</P>
+<table border="1" style="width:100%;margin-top:10px;">
+
+<tr>
+<th>
+    <input type="checkbox" id="select_all_theory">
+</th>
+<th>Student</th>
+<th>Subject</th>
+<th>Score</th>
+<th>Deleted At</th>
+<th>Auto Delete</th>
+</tr>
+
+{% for sub in theory_submissions %}
+<tr>
+<td>
+    <input type="checkbox" name="submission_ids" value="{{ sub.id }}">
+</td>
+<td>{{ sub.user.first_name }} {{ sub.user.last_name }}</td>
+<td>{{ sub.subject.name }}</td>
+<td>{{ sub.score or '-' }}</td>
+<td>{{ sub.deleted_at.strftime("%Y-%m-%d") }}</td>
+<td>
+    <span class="countdown" data-time="{{ sub.delete_timestamp }}"></span>
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</form>
+
+<!-- ================= THEORY PAGINATION ================= -->
+
+<div style="margin-top:20px;">
+
+{% if theory_total_pages > 1 %}
+
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+
+    {% if theory_page > 1 %}
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page, theory_page=1) }}">
+           « First
+        </a>
+
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page, theory_page=theory_page-1) }}">
+           ‹ Prev
+        </a>
+    {% endif %}
+
+    <span>
+        Page {{ theory_page }} of {{ theory_total_pages }}
+    </span>
+
+    {% if theory_page < theory_total_pages %}
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page, theory_page=theory_page+1) }}">
+           Next ›
+        </a>
+
+        <a class="btn"
+           href="{{ url_for('recycle_bin', results_page=results_page, theory_page=theory_total_pages) }}">
+           Last »
+        </a>
+    {% endif %}
+
+</div>
+
+{% endif %}
+
+</div>
+
+<hr style="margin:30px 0;">
+
+<!-- ================= SUBJECTS ================= -->
+
+<form method="post"
+      action="{{ url_for('restore_subjects') }}">
+<p>Subjects</p>
+<button class="btn">
+    ♻ Restore Selected Subjects
+</button>
+
+<table border="1"
+       style="width:100%;margin-top:10px;">
+
+<tr>
+
+<th>
+    <input type="checkbox"
+           id="select_all_subjects">
+</th>
+
+<th>ID</th>
+<th>Name</th>
+<th>Label</th>
+<th>Deleted At</th>
+<th>Auto Delete</th>
+<th>Actions</th>
+
+</tr>
+
+{% for s in subjects %}
+
+<tr>
+
+<td>
+    <input type="checkbox"
+           name="subject_ids"
+           value="{{ s.id }}">
+</td>
+
+<td>{{ s.id }}</td>
+
+<td>{{ s.name }}</td>
+
+<td>{{ s.label or '-' }}</td>
+
+<td>
+    {{ s.deleted_at.strftime("%Y-%m-%d") }}
+</td>
+
+<td>
+    <span class="countdown"
+          data-time="{{ s.delete_timestamp }}">
+    </span>
+</td>
+
+<td>
+
+    <a class="btn"
+       href="{{ url_for('permanently_delete_subject', subject_id=s.id) }}"
+       onclick="return confirm('Permanently delete this subject?')">
+
+       Delete Permanently
+
+    </a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</form>
+
+<hr style="margin:30px 0;">
+
+<!-- ================= GROUPS ================= -->
+<form method="post" action="{{ url_for('restore_groups') }}">
+<p>Groups</p>
+<button class="btn">
+    ♻ Restore Selected Groups
+</button>
+
+<table border="1" style="width:100%;margin-top:10px;">
+
+<tr>
+<th>
+    <input type="checkbox" id="select_all_groups">
+</th>
+
+<th>ID</th>
+<th>Name</th>
+<th>Parent</th>
+<th>Deleted At</th>
+<th>Auto Delete</th>
+<th>Actions</th>
+</tr>
+
+{% for g in groups %}
+<tr>
+<td>
+    <input type="checkbox" name="group_ids" value="{{ g.id }}">
+</td>
+
+<td>{{ g.id }}</td>
+<td>{{ g.name }}</td>
+
+<td>{{ g.parent.name if g.parent else '-' }}</td>
+
+<td>
+    {{ g.deleted_at.strftime("%Y-%m-%d") if g.deleted_at else '-' }}
+</td>
+
+<td>
+    <span class="countdown" data-time="{{ g.delete_timestamp or 0}}"></span>
+</td>
+
+<td>
+    <a class="btn"
+       href="{{ url_for('permanently_delete_group', group_id=g.id) }}"
+       onclick="return confirm('Permanently delete this group?')">
+       Delete Permanently
+    </a>
+</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</form>
+
+
+<!-- ============= Institution Administrators ============= -->
+{% if user.is_global %}
+<div class="card shadow-sm mb-4">
+
+    <div class="card-header bg-primary text-white">
+
+        <h5 class="mb-0">
+
+            Institution Administrators
+
+        </h5>
+
+    </div>
+
+    <div class="card-body">
+
+        {% if institution_admins %}
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead>
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Name</th>
+
+                        <th>Institution</th>
+
+                        <th>Administrator Type</th>
+
+                        <th>Deleted</th>
+
+                        <th>Auto Delete</th>
+
+                        <th>Restore</th>
+
+                        <th>Delete Permanently</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for admin in institution_admins %}
+
+                <tr>
+
+                    <td>
+
+                        {{ loop.index }}
+
+                    </td>
+
+                    <td>
+
+                        {{ admin.first_name }}
+                        {{ admin.last_name }}
+
+                    </td>
+
+                    <td>
+
+                        {{ admin.institution.name
+                           if admin.institution else "-" }}
+
+                    </td>
+
+                    <td>
+
+                        {% if admin.is_temporary_admin %}
+
+                            <span class="badge bg-info">
+
+                                Temporary
+
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge bg-success">
+
+                                Original
+
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {{ admin.deleted_at.strftime("%d %b %Y %H:%M")
+                           if admin.deleted_at else "-" }}
+
+                    </td>
+
+                    <td>
+
+                        {% if admin.delete_timestamp %}
+
+                            <span
+                                class="countdown"
+                                data-delete-time="{{ admin.delete_timestamp }}">
+
+                            </span>
+
+                        {% else %}
+
+                            -
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        <form
+                            method="POST"
+                            action="{{ url_for(
+                                'restore_institution_admin',
+                                user_id=admin.id) }}">
+
+                            <button
+                                class="btn btn-success btn-sm">
+
+                                Restore
+
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                    <td>
+
+			<form
+				method="POST"
+				action="{{ url_for(
+					'permanently_delete_institution_admin',
+					user_id=admin.id
+				) }}"
+				onsubmit="return confirm(
+					'Permanently delete this administrator?'
+				);">
+				<button class="btn btn-danger btn-sm">
+					Delete Permanently
+				</button>
+			</form>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        {% else %}
+
+        <div class="alert alert-light mb-0">
+
+            No deleted Institution Administrators.
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+{% if institution_admins_total_pages > 1 %}
+
+<nav>
+
+    <ul class="pagination justify-content-center">
+
+        {% for p in range(
+            1,
+            institution_admins_total_pages + 1
+        ) %}
+
+        <li class="page-item
+            {% if p == institution_admins_page %}
+                active
+            {% endif %}">
+
+            <a
+                class="page-link"
+                href="{{ url_for(
+                    'recycle_bin',
+                    institution_admins_page=p
+                ) }}">
+
+                {{ p }}
+
+            </a>
+
+        </li>
+
+        {% endfor %}
+
+    </ul>
+
+</nav>
+
+{% endif %}
+{% endif %}
+
+
+<!-- ================= Institutions ================= -->
+{% if user.is_global %}
+<button
+    class="tablinks"
+    onclick="openTab(event, 'institutions')">
+    🏫 Institutions
+</button>
+{% endif %}
+
+{% if user.is_global %}
+<div id="institutions" class="tabcontent">
+
+    <h3>🏫 Deleted Institutions</h3>
+
+    {% if institutions %}
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Deleted</th>
+                    <th>Auto Delete</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for institution in institutions %}
+
+                <tr>
+
+                    <td>{{ institution.name }}</td>
+
+                    <td>{{ institution.code or "-" }}</td>
+
+                    <td>
+                        {{ institution.deleted_at.strftime("%d %b %Y %H:%M")
+                        if institution.deleted_at else "-" }}
+                    </td>
+
+                    <td>
+
+                        {% if institution.delete_timestamp %}
+
+                        <span
+                            class="countdown"
+                            data-delete="{{ institution.delete_timestamp }}">
+                        </span>
+
+                        {% else %}
+                            -
+                        {% endif %}
+
+                    </td>
+
+                    <td class="text-nowrap">
+
+                        <a
+                            href="{{ url_for('restore_institution',
+                            institution_id=institution.id) }}"
+                            class="btn btn-success btn-sm">
+
+                            Restore
+
+                        </a>
+
+                        <a
+                            href="{{ url_for('permanently_delete_institution',
+                            institution_id=institution.id) }}"
+                            class="btn btn-danger btn-sm"
+                            onclick="return confirm('Permanently delete this institution?');">
+
+                            Delete Permanently
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+    </div>
+
+    {% else %}
+
+        <div class="alert alert-info">
+            No deleted institutions.
+        </div>
+
+    {% endif %}
+
+</div>
+{% endif %}
+
+
+<!-- ================= USERS ================= -->
+<h2>Deleted Users</h2>
+
+<form method="post" action="{{ url_for('restore_users') }}">
+
+<div style="overflow-x:auto;">
+
+<table border="1" style="width:100%; border-collapse:collapse;">
+
+<thead>
+
+<tr>
+    <th></th>
+    <th>ID</th>
+    <th>Name</th>
+    <th>Username</th>
+    <th>Email</th>
+    <th>Role</th>
+    <th>Deleted</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% if users %}
+
+    {% for u in users %}
+
+    <tr>
+
+        <td>
+            <input
+                type="checkbox"
+                name="user_ids"
+                value="{{ u.id }}">
+        </td>
+
+        <td>{{ u.id }}</td>
+
+        <td>
+            {{ u.first_name or "" }}
+            {{ u.last_name or "" }}
+        </td>
+
+        <td>{{ u.username }}</td>
+
+        <td>{{ u.email or "-" }}</td>
+
+        <td>{{ u.role }}</td>
+
+        <td>
+
+            {% if u.delete_timestamp %}
+
+            <span
+                class="countdown"
+                data-delete="{{ u.delete_timestamp }}">
+                Loading...
+            </span>
+
+            {% else %}
+
+            -
+
+            {% endif %}
+
+        </td>
+
+    </tr>
+
+    {% endfor %}
+
+{% else %}
+
+<tr>
+
+<td colspan="7" style="text-align:center;">
+No deleted users.
+</td>
+
+</tr>
+
+{% endif %}
+
+</tbody>
+
+</table>
+
+</div>
+
+<br>
+
+<button
+    class="btn"
+    type="submit">
+    Restore Selected Users
+</button>
+
+</form>
+<!-- ================= USERS PAGINATION ================= -->
+<div style="text-align:center;margin-top:10px;">
+
+{% if users_page > 1 %}
+
+<a class="btn"
+href="{{ url_for(
+    'recycle_bin',
+    users_page=users_page-1,
+    results_page=results_page,
+    theory_page=theory_page,
+    subjects_page=subjects_page
+) }}">
+
+Previous
+
+</a>
+
+{% endif %}
+
+<strong>
+
+Page {{ users_page }}
+of
+{{ users_total_pages }}
+
+</strong>
+
+{% if users_page < users_total_pages %}
+
+<a class="btn"
+href="{{ url_for(
+    'recycle_bin',
+    users_page=users_page+1,
+    results_page=results_page,
+    theory_page=theory_page,
+    subjects_page=subjects_page
+) }}">
+
+Next
+
+</a>
+
+{% endif %}
+
+</div>
+
+<!-- ================= SELECT ALL SCRIPT ================= -->
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // RESULTS
+    const selectAllResults = document.getElementById("select_all_results");
+    if (selectAllResults) {
+        selectAllResults.addEventListener("change", function () {
+            document.querySelectorAll('input[name="result_ids"]').forEach(cb => {
+                cb.checked = selectAllResults.checked;
+            });
+        });
+    }
+
+    // THEORY
+    const selectAllTheory = document.getElementById("select_all_theory");
+    if (selectAllTheory) {
+        selectAllTheory.addEventListener("change", function () {
+            document.querySelectorAll('input[name="submission_ids"]').forEach(cb => {
+                cb.checked = selectAllTheory.checked;
+            });
+        });
+    }
+
+});
+
+// SUBJECTS
+const selectAllSubjects = document.getElementById(
+    "select_all_subjects"
+);
+
+if (selectAllSubjects) {
+
+    selectAllSubjects.addEventListener(
+        "change",
+        function () {
+
+            document.querySelectorAll(
+                'input[name="subject_ids"]'
+            ).forEach(cb => {
+
+                cb.checked =
+                    selectAllSubjects.checked;
+
+            });
+
+        }
+    );
+
+}
+
+function formatTime(seconds) {
+    if (seconds <= 0) return "Due for deletion";
+
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    return `${days}d ${hours}h ${minutes}m ${secs}s`;
+}
+
+function updateCountdowns() {
+    const elements = document.querySelectorAll(".countdown");
+
+    const now = Math.floor(Date.now() / 1000);
+
+    elements.forEach(el => {
+        const target = parseInt(el.dataset.time);
+
+        if (!target) {
+            el.innerHTML = "-";
+            return;
+        }
+
+        const diff = target - now;
+
+        if (diff <= 0) {
+            el.innerHTML = "<span style='color:red;font-weight:bold;'>Due for deletion</span>";
+        } else {
+            el.innerHTML = `<span style="color:green;font-weight:bold;">${formatTime(diff)}</span>`;
+        }
+    });
+}
+
+// run immediately
+updateCountdowns();
+
+// update every 1 second
+setInterval(updateCountdowns, 1000);
+</script>
+
+{% endblock %}

@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+
+{% block title %}
+Approval Center
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- =======================================
+         PAGE TITLE
+    ======================================== -->
+
+    <h2 class="mb-4">
+
+        Approval Center
+
+    </h2>
+
+    <!-- =======================================
+         PENDING APPROVALS
+    ======================================== -->
+
+    <div class="card shadow-sm mb-4">
+
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+
+            <h5 class="mb-0">
+
+                <i class="fas fa-user-clock me-2"></i>
+
+                Pending Approvals
+
+            </h5>
+
+            <span class="badge bg-dark">
+
+                {{ pending_users.total }}
+
+            </span>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle">
+
+                    <thead class="table-light">
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Name</th>
+
+                            <th>Username</th>
+
+                            <th>Role</th>
+
+                            <th>Requested Institution</th>
+
+                            <th>Existing Institution</th>
+
+                            <th>Email</th>
+
+                            <th>Date Registered</th>
+
+                            <th>Status</th>
+
+                            <th>Approve</th>
+
+                            <th>Reject</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+                    {% for u in pending_users.items %}
+
+                        <tr>
+
+                            <td>
+
+                                {{ loop.index +
+                                ((pending_users.page-1)
+                                * pending_users.per_page) }}
+
+                            </td>
+
+                            <td>
+
+                                {{ u.first_name }}
+                                {{ u.last_name }}
+
+                            </td>
+
+                            <td>
+
+                                {{ u.username }}
+
+                            </td>
+
+                            <td>
+
+                                {{ u.role.replace("_", " ").title() }}
+
+                            </td>
+
+                            <!-- Requested Institution -->
+
+                            <td>
+
+                                {% if u.requested_institution_name %}
+
+                                    <span class="text-primary fw-semibold">
+
+                                        {{ u.requested_institution_name }}
+
+                                    </span>
+
+                                {% else %}
+
+                                    <span class="text-muted">
+
+                                        Not Specified
+
+                                    </span>
+
+                                {% endif %}
+
+                            </td>
+
+                            <!-- Existing Institution -->
+
+                            <td>
+
+                                {% if u.requested_existing_institution %}
+
+                                    <span class="text-success fw-semibold">
+
+                                        {{ u.requested_existing_institution.name }}
+
+                                    </span>
+
+                                {% elif u.institution %}
+
+									{% if u.institution %}
+									<span class="badge bg-primary">
+									{{ u.institution.name }}
+									</span>
+									{% else %}
+									<span class="text-muted">
+									—
+									</span>
+									{% endif %}                                    
+
+                                {% else %}
+
+                                    —
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                {{ u.email or "-" }}
+
+                            </td>
+
+                            <td>
+
+                                {% if u.created_at %}
+
+                                    {{ u.created_at.strftime("%d %b %Y") }}
+
+                                {% else %}
+
+                                    -
+
+                                {% endif %}
+
+                            </td>
+
+                            <td>
+
+                                <span class="badge bg-warning">
+
+                                    Pending
+
+                                </span>
+
+                            </td>
+
+                            <!-- APPROVE -->
+
+			<td>
+				<form
+					method="POST"
+					action="{{ url_for('approve_user', user_id=u.id) }}">
+					{% if u.role == "institution_admin" %}
+						{% if u.requested_existing_institution %}
+							<div class="alert alert-success py-2 px-2 mb-2">
+								<strong>Existing Institution</strong><br>
+								{{ u.requested_existing_institution.name }}
+							</div>
+							<input
+								type="hidden"
+								name="institution_id"
+								value="{{ u.requested_existing_institution.id }}">
+						{% elif u.requested_institution_name %}
+							<div class="alert alert-primary py-2 px-2 mb-2">
+								<strong>Requested New Institution</strong><br>
+								{{ u.requested_institution_name }}
+							</div>
+							<!--
+								Temporary dropdown.
+								The next step will replace this completely
+								with automatic institution creation.
+							-->
+							<select
+								name="institution_id"
+								class="form-select form-select-sm mb-2">
+								{% for inst in institutions %}
+									<option value="{{ inst.id }}">
+										{{ inst.name }}
+									</option>
+								{% endfor %}
+							</select>
+						{% else %}
+							<div class="alert alert-warning py-2 px-2 mb-2">
+								No institution specified.
+								Select one below.
+							</div>
+							<select
+								name="institution_id"
+								class="form-select form-select-sm mb-2">
+								{% for inst in institutions %}
+									<option value="{{ inst.id }}">
+										{{ inst.name }}
+									</option>
+								{% endfor %}
+							</select>
+						{% endif %}
+					{% endif %}
+					<button
+						class="btn btn-success btn-sm w-100">
+						Approve
+					</button>
+				</form>
+			</td>
+
+                            <!-- REJECT -->
+
+                            <td>
+
+                                <form
+                                    method="POST"
+                                    action="{{ url_for('reject_user', user_id=u.id) }}">
+
+                                    <button
+                                        class="btn btn-danger btn-sm w-100">
+
+                                        Reject
+
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+
+                    {% else %}
+
+                        <tr>
+
+                            <td
+                                colspan="11"
+                                class="text-center">
+
+                                No pending approvals.
+
+                            </td>
+
+                        </tr>
+
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- =======================================
+         PENDING PAGINATION
+    ======================================== -->
+
+    {% if pending_users.pages > 1 %}
+
+        <nav>
+
+            <ul class="pagination justify-content-center">
+
+                {% for p in pending_users.iter_pages() %}
+
+                    {% if p %}
+
+                        <li class="page-item {% if p == pending_users.page %}active{% endif %}">
+
+                            <a
+                                class="page-link"
+                                href="{{ url_for(
+                                    'approval_center',
+                                    pending_page=p,
+                                    approved_page=approved_users.page
+                                ) }}">
+
+                                {{ p }}
+
+                            </a>
+
+                        </li>
+
+                    {% endif %}
+
+                {% endfor %}
+
+            </ul>
+
+        </nav>
+
+    {% endif %}
+	
+<!-- =======================================
+     APPROVED USERS
+======================================= -->
+
+<div class="card shadow-sm mt-5">
+
+    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+
+        <h5 class="mb-0">
+
+            <i class="fas fa-user-check me-2"></i>
+
+            Approved Users
+
+        </h5>
+
+        <span class="badge bg-light text-dark">
+
+            {{ approved_users.total }}
+
+        </span>
+
+    </div>
+
+    <div class="card-body">
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-hover align-middle">
+
+                <thead class="table-light">
+
+                    <tr>
+
+                        <th>#</th>
+
+                        <th>Name</th>
+
+                        <th>Username</th>
+
+                        <th>Role</th>
+
+                        <th>Institution</th>
+
+                        <th>Approved By</th>
+
+                        <th>Approved Date</th>
+
+                        <th>Status</th>
+
+                        <th>Disapprove</th>
+
+                        <th>Delete</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                {% for u in approved_users.items %}
+
+                <tr>
+
+                    <td>
+
+                        {{ loop.index +
+                        ((approved_users.page-1)
+                        * approved_users.per_page) }}
+
+                    </td>
+
+                    <td>
+                        {{ u.first_name }}
+                        {{ u.last_name }}
+                    </td>
+                    <td>
+                        {{ u.username }}
+                    </td>
+                    <td>
+						{% if u.is_institution_admin %}
+						<span class="badge bg-info">
+						Institution Admin
+						</span>
+						{% else %}
+						{{ u.role.replace("_"," ").title() }}
+						{% endif %}                        
+                    </td>
+                    <td>
+                        {% if u.institution %}
+                            {{ u.institution.name }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.approver %}
+                            {{ u.approver.first_name }}
+                            {{ u.approver.last_name }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.approved_at %}
+                            {{ u.approved_at.strftime("%d %b %Y") }}
+
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge bg-success">
+						<i class="fas fa-check-circle me-1"></i>
+                            Approved
+                        </span>
+                    </td>
+                    <td>
+				{% if
+					not u.is_global
+					and u.role != "licenser"
+				%}
+		<form
+			method="POST"
+			action="{{ url_for( 'disapprove_user', user_id=u.id ) }}"
+			onsubmit="return confirm(
+			'Move this user back to Pending Approval?' )" >
+			<button
+				class="btn btn-warning btn-sm w-100">
+				Disapprove
+			</button>
+		</form>
+				{% else %}
+				<span class="text-muted">
+				Protected
+				</span>
+				{% endif %}						
+                    </td>
+                    <td>
+				{% if
+					u.is_institution_admin
+					and not u.is_global
+					and u.role != "licenser"
+				%}
+		<form
+			method="POST"
+			action="{{ url_for(
+				'delete_institution_admin', user_id=u.id ) }}"
+			onsubmit="return confirm(
+			'Delete this Institution Administrator?' )" >
+			<button
+				class="btn btn-danger btn-sm w-100">
+				Delete
+			</button>
+		</form>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="10" class="text-center">
+                        No approved users.
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% if approved_users.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        {% for p in approved_users.iter_pages() %}
+            {% if p %}
+                <li class="page-item
+                    {% if p==approved_users.page %}
+                        active
+                    {% endif %}">
+                    <a
+                        class="page-link"
+                        href="{{ url_for(
+                            'approval_center',
+                            pending_page=pending_users.page,
+                            approved_page=p
+                        ) }}">
+                        {{ p }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+</nav>
+
+{% endif %}	
+
+</div>
+
+{% endblock %}

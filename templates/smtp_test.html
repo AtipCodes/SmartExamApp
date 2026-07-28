@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>SMTP Connection Test</h2>
+
+<p>This checks if your server can reach Gmail SMTP ports.</p>
+
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Host</th>
+        <th>Port</th>
+        <th>Status</th>
+        <th>Details</th>
+    </tr>
+
+    {% for r in results %}
+    <tr>
+        <td>{{ r.host }}</td>
+        <td>{{ r.port }}</td>
+        <td>
+            {% if r.status == "OK" %}
+                <span style="color:green;">{{ r.status }}</span>
+            {% else %}
+                <span style="color:red;">{{ r.status }}</span>
+            {% endif %}
+        </td>
+        <td>{{ r.message }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<br>
+
+{% if results[1].status == "OK" %}
+    <p style="color:green;">
+        ✅ Recommendation: Use SMTP Port 465 (SSL)
+    </p>
+{% else %}
+    <p style="color:red;">
+        ❌ SMTP blocked or unstable
+    </p>
+{% endif %}
+
+{% endblock %}

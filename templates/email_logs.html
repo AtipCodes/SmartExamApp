@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>Email Queue Logs</h2>
+<button type="submit"
+    onclick="return confirm('Resend all failed emails? This cannot be undone.')"
+    style="background:#dc2626;color:white;padding:10px;border:none;border-radius:6px;">
+    🔁 Resend Failed Emails
+</button>
+<form method="POST" action="{{ url_for('resend_selected_emails') }}">
+
+<button type="submit"
+    onclick="return confirm('Resend selected emails?')"
+    style="background:#2563eb;color:white;padding:10px;border:none;border-radius:6px;">
+    🔁 Resend Selected
+</button>
+
+<br><br>
+
+<table border="1" cellpadding="8" width="100%">
+
+<tr>
+    <th>Select</th>
+    <th>Recipient</th>
+    <th>Subject</th>
+    <th>Status</th>
+    <th>Attempts</th>
+</tr>
+
+{% for log in logs %}
+<tr>
+
+    <td>
+        {% if log.status != "sent" %}
+        <input type="checkbox" name="email_ids" value="{{ log.id }}">
+        {% endif %}
+    </td>
+
+    <td>{{ log.recipient }}</td>
+    <td>{{ log.subject }}</td>
+
+    <td>
+        {% if log.status == "sent" %}
+            <span style="color:green;">SENT</span>
+        {% elif log.status == "failed" %}
+            <span style="color:red;">FAILED</span>
+        {% else %}
+            <span style="color:orange;">PENDING</span>
+        {% endif %}
+    </td>
+
+    <td>{{ log.attempts }}</td>
+
+</tr>
+{% endfor %}
+
+</table>
+
+</form>
+
+{% endblock %}

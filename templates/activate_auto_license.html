@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %} Activate License {% endblock %}
+
+{% block content %}
+
+<h2>Enter Activation Key</h2>
+
+<form method="post">
+
+    <label>Activation Key:</label>
+    <br>
+    <input type="text" name="key" required>
+    <br><br>
+
+    <button type="submit">Activate</button>
+
+</form>
+
+<br>
+
+<a href="{{ url_for('license_dashboard') }}">← Back</a>
+
+{% endblock %}

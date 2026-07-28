@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+body {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    color: #000;
+    margin: 20px;
+    {% if settings and settings.background_path %}
+    background-image:
+    url("{{ url_for('static',
+    filename=settings.background_path) }}");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    {% endif %}
+}
+.header {
+    text-align: center;
+    margin-bottom: 15px;
+}
+.logo {
+
+    height: 70px;
+
+    margin-bottom: 5px;
+}
+
+.title {
+
+    font-size: 24px;
+
+    font-weight: bold;
+}
+
+.sub {
+
+    font-size: 13px;
+
+    margin-top: 3px;
+}
+
+.section {
+
+    margin-top: 15px;
+}
+
+table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+    margin-top: 10px;
+}
+
+td, th {
+
+    border: 1px solid #000;
+
+    padding: 5px;
+
+    text-align: center;
+}
+
+.no-border td {
+
+    border: none;
+
+    text-align: left;
+
+    vertical-align: top;
+}
+
+.small {
+
+    font-size: 11px;
+}
+
+.student-passport {
+
+    width: 100px;
+
+    height: 100px;
+
+    object-fit: cover;
+
+    border: 1px solid #000;
+}
+
+.grade-a {
+
+    color: green;
+
+    font-weight: bold;
+}
+
+.grade-b {
+
+    color: blue;
+
+    font-weight: bold;
+}
+
+.grade-c {
+
+    color: orange;
+
+    font-weight: bold;
+}
+
+.grade-d {
+
+    color: #cc6600;
+
+    font-weight: bold;
+}
+
+.grade-e {
+
+    color: #cc0000;
+
+    font-weight: bold;
+}
+
+.grade-f {
+
+    color: red;
+
+    font-weight: bold;
+}
+
+.signature-table {
+
+    width: 100%;
+
+    margin-top: 40px;
+
+    border: none;
+}
+
+.signature-table td {
+
+    border: none;
+
+    width: 50%;
+
+    text-align: center;
+
+    vertical-align: bottom;
+}
+
+.signature-line {
+
+    margin-top: 20px;
+
+    border-top: 1px solid #000;
+
+    padding-top: 5px;
+}
+
+.signature-image {
+
+    height: 50px;
+
+    margin-bottom: 5px;
+}
+
+.comment-box {
+
+    border: 1px solid #000;
+
+    padding: 8px;
+
+    min-height: 40px;
+
+    margin-top: 5px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- ================================================= -->
+<!-- SAFE DEFAULTS -->
+<!-- ================================================= -->
+
+{% set grand_total = grand_total|default(0, true) %}
+{% set average = average|default(0, true) %}
+{% set gpa = gpa|default(0, true) %}
+{% set cgpa = cgpa|default(0, true) %}
+
+<!-- ================================================= -->
+<!-- HEADER -->
+<!-- ================================================= -->
+
+<div class="header">
+
+    {% if settings and settings.logo_path %}
+
+        <img
+        src="{{ url_for('static',
+        filename=settings.logo_path) }}"
+        class="logo">
+
+    {% endif %}
+
+    <div class="title">
+
+        {{ settings.name if settings else 'SCHOOL NAME' }}
+
+    </div>
+
+    <div class="small">
+
+        {{ settings.address if settings else '' }}
+
+    </div>
+
+    <div class="small">
+
+        Phone:
+        {{ settings.phone if settings else '' }}
+
+    </div>
+
+    <div class="sub">
+
+        CONTINUOUS ASSESSMENT REPORT
+
+    </div>
+
+    <div class="sub">
+
+        {{ settings.term if settings else '' }}
+        TERM —
+
+        {{ settings.session if settings else '' }}
+
+    </div>
+
+</div>
+
+<!-- ================================================= -->
+<!-- STUDENT INFO -->
+<!-- ================================================= -->
+
+<table class="no-border">
+
+<tr>
+
+<td width="75%">
+
+    <p>
+        <b>Name:</b>
+
+        {{ student.first_name }}
+        {{ student.last_name }}
+    </p>
+
+    <p>
+        <b>Admission No:</b>
+
+        {{ student.username }}
+    </p>
+
+    <p>
+        <b>Class:</b>
+
+        {{ student.class_name or '' }}
+    </p>
+{% if settings.show_student_position %}
+    <p>
+        <b>Position:</b>
+
+        {{ position or '' }}
+    </p>
+{% endif %}
+{% if settings.show_class_size %}
+    <p>
+        <b>No in Class:</b>
+
+        {{ class_size or '' }}
+    </p>
+{% endif %}
+    <p>
+        <b>Age:</b>
+
+        {{ student.age or '' }}
+    </p>
+
+</td>
+
+<td width="25%" align="center">
+
+    {% if student.passport_path %}
+
+        <img
+        src="{{ url_for('static',
+        filename=student.passport_path) }}"
+        class="student-passport">
+
+    {% endif %}
+
+</td>
+</tr>
+</table>
+<!-- ================================================= -->
+<!-- PERFORMANCE TABLE -->
+<!-- ================================================= -->
+<table>
+<tr>
+    <th>Subject</th>
+    <th>CA</th>
+    <th>EXAM (OBJ)</th>
+    <th>EXAM (THEORY)</th>
+    <th>TOTAL</th>
+    <th>GRADE</th>
+    <th>REMARK</th>
+</tr>
+{% for r in results %}
+<tr>
+    <td>
+        {{ r.subject }}
+    </td>
+    <td>
+        {{ r.ca }}
+    </td>
+    <td>
+        {{ r.exam_obj }}
+    </td>
+    <td>
+        {{ r.exam_theory }}
+    </td>
+    <td>
+        {{ r.total }}
+    </td>
+    <td class="
+        {% if r.grade == 'A' %}
+            grade-a
+
+        {% elif r.grade == 'B' %}
+            grade-b
+
+        {% elif r.grade == 'C' %}
+            grade-c
+
+        {% elif r.grade == 'D' %}
+            grade-d
+
+        {% elif r.grade == 'E' %}
+            grade-e
+
+        {% else %}
+            grade-f
+        {% endif %}
+    ">
+        {{ r.grade }}
+    </td>
+    <td>
+        {{ r.remark }}
+    </td>
+</tr>
+{% endfor %}
+<tr>
+    <td>
+        <b>TOTAL</b>
+    </td>
+    <td colspan="8">
+        {{ grand_total }}
+    </td>
+</tr>
+<tr>
+{% if settings.show_class_average %}
+    <td>
+        <b>AVERAGE</b>
+    </td>
+    <td colspan="8">
+        {{ average }}
+    </td>
+{% endif %}
+</tr>
+{% if settings.show_gpa %}
+<tr>
+	<td>
+		<b>
+			{% if grading_scale == 'percentage_100' %}
+				Average Score
+			{% elif grading_scale == 'cgpa_5' %}
+				GPA (5.0 Scale)
+			{% elif grading_scale == 'gpa_4' %}
+				GPA (4.0 Scale)
+			{% else %}
+				GPA
+			{% endif %}
+		</b>
+	</td>
+    <td colspan="8">
+        {{ gpa | round(2) }}
+    </td>
+</tr>
+{% endif %}
+{% if settings.show_cgpa %}
+<tr>
+	<td>
+		<b>
+			{% if academic_mode == 'nigerian_secondary' %}
+				Cumulative Average
+			{% else %}
+				CGPA
+			{% endif %}
+		</b>
+	</td>
+    <td colspan="8">
+        {{ cgpa | round(2) }}
+    </td>
+</tr>
+{% endif %}
+</table>
+<!-- ================================================= -->
+<!-- ATTENDANCE -->
+<!-- ================================================= -->
+<div class="section">
+<table>
+{% if settings.show_attendance %}
+<tr>
+    <th colspan="2">
+        Attendance Summary
+    </th>
+</tr>
+{% endif %}
+<tr>
+    <td>
+        Days School Opened
+    </td>
+    <td>
+        {{ remark.days_open or 0 }}
+    </td>
+</tr>
+<tr>
+    <td>
+        Days Present
+    </td>
+    <td>
+        {{ remark.days_present or 0 }}
+    </td>
+</tr>
+<tr>
+    <td>
+        Days Absent
+    </td>
+    <td>
+        {{
+            (student.days_open or 0)
+            -
+            (student.days_present or 0)
+        }}
+    </td>
+</tr>
+</table>
+</div>
+<!-- ================================================= -->
+<!-- PSYCHOMOTOR / AFFECTIVE -->
+<!-- ================================================= -->
+{% if settings.show_psychomotor and remark %}
+<div class="section">
+<table>
+<tr>
+    <th colspan="2">
+        Psychomotor / Affective Domain
+    </th>
+</tr>
+<tr>
+    <td>Punctuality</td>
+    <td>{{ remark.punctuality or '' }}</td>
+</tr>
+<tr>
+    <td>Honesty</td>
+    <td>{{ remark.honesty or '' }}</td>
+</tr>
+<tr>
+    <td>Neatness</td>
+    <td>{{ remark.neatness or '' }}</td>
+</tr>
+<tr>
+    <td>Leadership</td>
+    <td>{{ remark.leadership or '' }}</td>
+</tr>
+<tr>
+    <td>Handwriting</td>
+    <td>{{ remark.handwriting or '' }}</td>
+</tr>
+<tr>
+    <td>Sports</td>
+    <td>{{ remark.sports or '' }}</td>
+</tr>
+</table>
+</div>
+{% endif %}
+<!-- ================================================= -->
+<!-- COMMENTS -->
+<!-- ================================================= -->
+<div class="section">
+{% if settings.show_teacher_comment %}
+<p>
+    <b>Class Teacher's Comment:</b>
+</p>
+<div class="comment-box">
+    {% if remark %}
+        {{ remark.class_teacher_comment or '' }}
+    {% endif %}
+</div>
+{% endif %}
+{% if settings.show_principal_comment %}
+<p>
+    <b>Principal's Comment:</b>
+</p>
+<div class="comment-box">
+    {% if remark %}
+        {{ remark.principal_comment or '' }}
+    {% endif %}
+</div>
+{% endif %}
+{% if settings.show_next_term %}
+<p>
+<b>Next Term Begins:</b>
+{{ settings.next_term_begins }}
+</p>
+{% endif %}
+</div>
+<!-- ================================================= -->
+<!-- SIGNATURES -->
+<!-- ================================================= -->
+<div class="signature-area">
+<div class="signature-box">
+    <div class="signature-line">
+        {{ teacher_name or 'Class Teacher' }}
+    </div>
+</div>
+<table class="signature-table">
+<tr>
+<td>
+    <div class="signature-line">
+        {{ teacher_name or 'Class Teacher' }}
+    </div>
+</td>
+<td>
+    {% if settings and settings.principal_signature_path %}
+        <img
+        src="{{ url_for(
+            'static',
+            filename=settings.principal_signature_path
+        ) }}"
+        class="signature-image">
+    {% endif %}
+    <div class="signature-line">
+        Principal's Signature
+    </div>
+</td>
+</tr>
+</table>
+<div class="sub">
+    {{ settings.term if settings else '' }}
+    TERM —
+    {{ settings.session if settings else '' }}
+</div>
+<div class="small">
+    Grading System:
+    {{ grading_scale_name or 'Percentage (0 - 100)' }}
+</div>
+</body>
+</html>

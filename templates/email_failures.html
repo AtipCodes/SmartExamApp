@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %} Email Failures {% endblock %}
+{% block content %}
+
+<h2>Email Failures</h2>
+
+<table border="1" cellpadding="6">
+<tr>
+    <th>ID</th>
+    <th>Recipient</th>
+    <th>Status</th>
+    <th>Attempts</th>
+    <th>Error</th>
+</tr>
+
+{% for f in failures.items %}
+<tr>
+    <td>{{ f.id }}</td>
+    <td>{{ f.recipient }}</td>
+    <td>{{ f.status }}</td>
+    <td>{{ f.attempts }}</td>
+    <td>{{ f.error }}</td>
+</tr>
+{% endfor %}
+</table>
+
+<br>
+
+<!-- ================= PAGINATION ================= -->
+<div style="margin-top:15px;">
+
+    {% if failures.has_prev %}
+        <a href="{{ url_for('email_failures', page=failures.prev_num) }}">
+            ⬅ Previous
+        </a>
+    {% endif %}
+
+    <span style="margin:0 10px;">
+        Page {{ failures.page }} of {{ failures.pages }}
+    </span>
+
+    {% if failures.has_next %}
+        <a href="{{ url_for('email_failures', page=failures.next_num) }}">
+            Next ➡
+        </a>
+    {% endif %}
+
+</div>
+
+{% endblock %}

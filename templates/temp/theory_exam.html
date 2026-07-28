@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %} Theory Exam {% endblock %}
+
+{% block content %}
+<h2>Theory Exam for {{ subject.name }}</h2>
+
+<form method="POST" enctype="multipart/form-data">
+
+    {% for q in questions %}
+        <div class="question">
+            <p><strong>{{ loop.index }}.</strong> {{ q.prompt }}</p>
+
+            <!-- ================= TEXT ANSWER ================= -->
+            <textarea name="answer_{{ q.id }}" rows="4" cols="50">{{ answers.get(q.id|string, {}).get('text', '') }}</textarea>
+
+            <!-- ================= FILE UPLOAD ================= -->
+            <input type="file" name="file_{{ q.id }}">
+
+            {% if answers.get(q.id|string) and answers.get(q.id|string).get('file_path') %}
+                <p>
+                    Uploaded:
+                    <a href="{{ url_for('static', filename='uploads/' + answers.get(q.id|string).get('file_path')) }}" target="_blank">
+                        View File
+                    </a>
+                </p>
+            {% endif %}
+        </div>
+        <hr>
+    {% endfor %}
+
+    <!-- ================= BUTTONS (FIXED) ================= -->
+    <button type="submit" name="save">Save Answers</button>
+    <button type="submit" name="submit">Submit Exam</button>
+
+</form>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block title %} Scheduler Status {% endblock %}
+{% block content %}
+
+<style>
+body {
+    font-family: Arial;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.card {
+    padding: 15px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+}
+
+.green { background: #28a745; }
+.red { background: #dc3545; }
+.blue { background: #007bff; }
+.dark { background: #343a40; }
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.table th, .table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.table th {
+    background: #f4f4f4;
+}
+</style>
+
+<h2>Scheduler Control Center</h2>
+
+<!-- ================= DASH CARDS ================= -->
+<div class="dashboard">
+
+    <div class="card blue">
+        Total Jobs<br>
+        {{ total_jobs }}
+    </div>
+
+    <div class="card green">
+        Emails Sent<br>
+        {{ email_stats.sent }}
+    </div>
+
+    <div class="card red">
+        Failed Emails<br>
+        {{ email_stats.failed }}
+    </div>
+
+    <div class="card dark">
+        Dead Emails<br>
+        {{ email_stats.dead }}
+    </div>
+
+</div>
+
+<!-- ================= JOB TABLE ================= -->
+<h3>Active Jobs Control Panel</h3>
+
+<table class="table">
+    <tr>
+        <th>Job ID</th>
+        <th>Name</th>
+        <th>Next Run</th>
+        <th>Status</th>
+        <th>Actions</th>
+    </tr>
+
+    {% for job in jobs %}
+    <tr>
+        <td>{{ job.id }}</td>
+        <td>{{ job.name }}</td>
+        <td>
+            {% if job.next_run %}
+                {{ job.next_run }}
+            {% else %}
+                <span style="color:red;">Not Scheduled</span>
+            {% endif %}
+        </td>
+
+        <td>
+            {% if job.next_run %}
+                🟢 Active
+            {% else %}
+                🔴 Paused/Stopped
+            {% endif %}
+        </td>
+
+        <td style="display:flex; gap:5px; flex-wrap:wrap;">
+
+            <!-- RUN NOW -->
+            <form method="POST" action="{{ url_for('run_job_now', job_id=job.id) }}">
+                <button type="submit">▶ Run</button>
+            </form>
+
+            <!-- PAUSE -->
+            <form method="POST" action="{{ url_for('pause_job', job_id=job.id) }}">
+                <button type="submit">⏸ Pause</button>
+            </form>
+
+            <!-- RESUME -->
+            <form method="POST" action="{{ url_for('resume_job', job_id=job.id) }}">
+                <button type="submit">🔁 Resume</button>
+            </form>
+
+            <!-- DELETE -->
+            <form method="POST" action="{{ url_for('delete_job', job_id=job.id) }}"
+                  onsubmit="return confirm('Delete this job?');">
+                <button type="submit" style="color:red;">❌ Delete</button>
+            </form>
+
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+{% endblock %}

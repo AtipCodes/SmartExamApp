@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% block title %}Theory Submissions{% endblock %}
+
+{% block content %}
+
+<style>
+/* ================= FULL TABLE GRID BORDER SYSTEM ================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 1px solid #333;
+}
+
+/* ROW + COLUMN BORDERS */
+table th,
+table td {
+    border: 1px solid #333;
+    padding: 8px;
+}
+
+/* HEADER STYLE */
+table th {
+    background: #eee;
+    text-align: left;
+}
+
+/* OPTIONAL: zebra rows for readability */
+table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+</style>
+
+<h2>Theory Submissions</h2>
+
+<!-- ===== FILTER FORM ===== -->
+<form method="GET" style="margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap;">
+
+    <select name="subject_id">
+        <option value="">All Subjects</option>
+        {% for s in subjects %}
+            <option value="{{ s.id }}" {% if selected_subject_id == s.id %}selected{% endif %}>
+                {{ s.name }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <input type="text" name="first_name" placeholder="First Name" value="{{ first_name }}">
+    <input type="text" name="last_name" placeholder="Last Name" value="{{ last_name }}">
+
+    <input type="date" name="start_date" value="{{ start_date or '' }}">
+    <input type="date" name="end_date" value="{{ end_date or '' }}">
+
+    <button type="submit">Filter</button>
+    <a href="{{ url_for('theory_submissions') }}">
+        <button type="button">Reset</button>
+    </a>
+</form>
+
+<!-- ===== DOWNLOAD ZIP ===== -->
+<form method="POST" style="margin-bottom:15px;">
+    <button name="download_zip">⬇ Download ZIP</button>
+</form>
+
+<!-- ===== BULK DELETE FORM ===== -->
+<form method="POST" action="{{ url_for('delete_theory_submissions') }}">
+
+<div style="margin-bottom:10px;">
+    <button type="submit" onclick="return confirm('Delete selected submissions?')">
+        🗑 Delete Selected
+    </button>
+</div>
+
+
+<h3>🔥 Latest 10 Theory Submissions</h3>
+
+<table border="1" style="border-collapse:collapse;width:100%; margin-bottom:20px;">
+
+<thead>
+<tr>
+<th>Student</th>
+<th>Subject</th>
+<th>Score</th>
+<th>Submitted At</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for sub in latest_10_theory %}
+<tr>
+<td>{{ sub.user.first_name }} {{ sub.user.last_name }}</td>
+<td>{{ sub.subject.name }}</td>
+<td>{{ sub.score or '-' }}</td>
+<td>{{ sub.submitted_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+</tr>
+{% endfor %}
+
+</tbody>
+</table>
+
+<h3>🔥 All Theory Submissions</h3>
+
+<!-- ===== TABLE ===== -->
+<table>
+<thead>
+<tr>
+    <th><input type="checkbox" onclick="toggleAll(this)"></th>
+    <th>Student</th>
+    <th>Subject</th>
+    <th>Date</th>
+    <th>Status</th>
+    <th>Score</th>
+    <th>Actions</th>
+</tr>
+</thead>
+
+<tbody>
+{% for sub in submissions %}
+<tr>
+    <td>
+        <input type="checkbox" name="submission_ids" value="{{ sub.id }}">
+    </td>
+
+    <td>{{ sub.user.first_name }} {{ sub.user.last_name }}</td>
+    <td>{{ sub.subject.name }}</td>
+
+    <td>
+        {% if sub.submitted_at %}
+            {{ sub.submitted_at.strftime('%Y-%m-%d %H:%M') }}
+        {% else %}
+            Not submitted
+        {% endif %}
+    </td>
+
+    <td>
+        {% if sub.score %}
+            <span style="color:green;">Graded</span>
+        {% else %}
+            <span style="color:orange;">Pending</span>
+        {% endif %}
+    </td>
+
+    <td>{{ sub.score or '-' }}</td>
+
+    <td>
+        <button type="button" onclick="toggleDetails({{ sub.id }})">View</button>
+        <button type="button" onclick="toggleScore({{ sub.id }})">Score</button>
+
+        <!-- SINGLE DELETE -->
+        <form method="POST" action="{{ url_for('delete_theory_submissions') }}" style="display:inline;">
+            <input type="hidden" name="submission_ids" value="{{ sub.id }}">
+            <button type="submit" onclick="return confirm('Delete this submission?')">
+                🗑 Delete
+            </button>
+        </form>
+    </td>
+</tr>
+
+<!-- ===== ANSWERS ROW ===== -->
+<tr id="details-{{ sub.id }}" style="display:none; background:#fafafa;">
+<td colspan="7">
+<strong>Answers:</strong><br><br>
+
+{% set answers = sub.answers_json | fromjson %}
+
+{% for qid, ans in answers.items() %}
+    <div style="border:1px dashed #ccc; margin-bottom:10px; padding:10px;">
+        <strong>Question {{ qid }}</strong><br>
+        {% if ans.text %}
+            <pre>{{ ans.text }}</pre>
+        {% endif %}
+        {% if ans.file_path %}
+            <a href="{{ url_for('static', filename='uploads/' + ans.file_path) }}" target="_blank">
+                📎 View File
+            </a>
+        {% endif %}
+    </div>
+{% endfor %}
+
+</td>
+</tr>
+
+<!-- ===== SCORE INPUT ROW ===== -->
+<tr id="score-{{ sub.id }}" style="display:none; background:#eef;">
+<td colspan="7">
+<form method="POST" action="{{ url_for('score_theory', submission_id=sub.id) }}" style="display:flex; gap:10px;">
+    <label>Score:</label>
+    <input type="number" name="score" value="{{ sub.score or 0 }}" style="width:80px;" required>
+    <button type="submit">Save</button>
+</form>
+</td>
+</tr>
+
+{% endfor %}
+</tbody>
+</table>
+
+</form>
+
+<!-- ===== PAGINATION ===== -->
+<div style="margin-top:20px; display:flex; gap:5px; flex-wrap:wrap;">
+{% if page > 1 %}
+    <a href="{{ url_for('theory_submissions', page=1,
+                        subject_id=selected_subject_id,
+                        first_name=first_name,
+                        last_name=last_name,
+                        start_date=start_date,
+                        end_date=end_date) }}">First</a>
+    <a href="{{ url_for('theory_submissions', page=page-1,
+                        subject_id=selected_subject_id,
+                        first_name=first_name,
+                        last_name=last_name,
+                        start_date=start_date,
+                        end_date=end_date) }}">Previous</a>
+{% endif %}
+
+{% for p in range(1, total_pages + 1) %}
+    {% if p == page %}
+        <strong>{{ p }}</strong>
+    {% elif p >= page-2 and p <= page+2 %}
+        <a href="{{ url_for('theory_submissions',
+                            page=p,
+                            subject_id=selected_subject_id,
+                            first_name=first_name,
+                            last_name=last_name,
+                            start_date=start_date,
+                            end_date=end_date) }}">
+            {{ p }}
+        </a>
+    {% endif %}
+{% endfor %}
+
+{% if page < total_pages %}
+    <a href="{{ url_for('theory_submissions', page=page+1,
+                        subject_id=selected_subject_id,
+                        first_name=first_name,
+                        last_name=last_name,
+                        start_date=start_date,
+                        end_date=end_date) }}">Next</a>
+    <a href="{{ url_for('theory_submissions', page=total_pages,
+                        subject_id=selected_subject_id,
+                        first_name=first_name,
+                        last_name=last_name,
+                        start_date=start_date,
+                        end_date=end_date) }}">Last</a>
+{% endif %}
+</div>
+
+<!-- ===== JS ===== -->
+<script>
+function toggleDetails(id){
+    let row = document.getElementById("details-" + id);
+    row.style.display = row.style.display === "none" ? "table-row" : "none";
+}
+
+function toggleScore(id){
+    let row = document.getElementById("score-" + id);
+    row.style.display = row.style.display === "none" ? "table-row" : "none";
+}
+
+function toggleAll(source){
+    let checkboxes = document.querySelectorAll('input[name="submission_ids"]');
+    checkboxes.forEach(cb => cb.checked = source.checked);
+}
+</script>
+
+{% endblock %}

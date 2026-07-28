@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h2>Generate Report Cards</h2>
+
+<!-- SEARCH -->
+<form method="get"
+      style="display:flex;
+             gap:10px;
+             align-items:center;">
+
+  <input type="text"
+         name="search"
+         value="{{ search }}"
+         placeholder="Search student globally...">
+
+  <button type="submit">
+    Search
+  </button>
+
+  <a href="{{ url_for('report_card') }}"
+     style="padding:6px 10px;
+            background:#ccc;
+            text-decoration:none;
+            color:#000;
+            border-radius:4px;">
+
+     Reset
+
+  </a>
+
+</form>
+
+<br>
+
+<!-- COUNTER -->
+<div style="font-weight:bold; margin-bottom:10px;">
+
+  Selected:
+
+  <span id="selected_count">0</span>
+
+  /
+
+  <span id="total_count">
+    {{ total_students_count }}
+  </span>
+
+</div>
+
+<!-- SELECT ALL -->
+<label>
+
+  <input type="checkbox"
+         id="select_all">
+
+  Select All (All Filtered Students)
+
+</label>
+
+<br><br>
+
+<!-- STUDENTS -->
+<div id="students_box"
+     style="max-height:250px;
+            overflow:auto;
+            border:1px solid #ccc;
+            padding:5px;">
+
+  {% for s in students %}
+
+  <div class="student-item"
+       style="padding:4px;">
+
+    <label>
+
+      <input type="checkbox"
+             class="student_cb"
+             value="{{ s.id }}">
+
+      {{ start_index + loop.index }}.
+
+      {{ s.first_name }}
+      {{ s.last_name }}
+
+      <span style="color:red;">
+        ({{ s.username }})
+      </span>
+
+    </label>
+
+  </div>
+
+  {% endfor %}
+
+</div>
+
+<br>
+
+<!-- PAGINATION -->
+<div style="display:flex;
+            gap:10px;
+            flex-wrap:wrap;
+            margin:10px 0;">
+
+  {% if students_paginated.page > 1 %}
+    <a href="?page=1&search={{ search }}">
+      ⏮ First
+    </a>
+  {% endif %}
+
+  {% if students_paginated.has_prev %}
+    <a href="?page={{ students_paginated.prev_num }}&search={{ search }}">
+      ⬅ Prev
+    </a>
+  {% endif %}
+
+  <span>
+    Page {{ students_paginated.page }}
+    of
+    {{ students_paginated.pages }}
+  </span>
+
+  {% if students_paginated.has_next %}
+    <a href="?page={{ students_paginated.next_num }}&search={{ search }}">
+      Next ➡
+    </a>
+  {% endif %}
+
+  {% if students_paginated.page < students_paginated.pages %}
+    <a href="?page={{ students_paginated.pages }}&search={{ search }}">
+      Last ⏭
+    </a>
+  {% endif %}
+
+</div>
+
+<br>
+
+<!-- MAIN FORM -->
+<form method="post" id="mainForm">
+
+  <input type="hidden" name="student_ids" id="student_ids_input">
+  <input type="hidden" name="select_all" id="select_all_value" value="0">
+
+  <!-- DATE RANGE -->
+  <label>Start Date:</label>
+  <input type="date" name="start_date" required>
+
+  <label>End Date:</label>
+  <input type="date" name="end_date" required>
+
+  <br><br>
+
+  <!-- EXAM SELECTION -->
+  <label><b>Exam Selection</b></label><br>
+
+  <select name="exam_label" required>
+    {% for l in exam_labels %}
+      <option value="{{ l }}">{{ l }}</option>
+    {% endfor %}
+  </select>
+
+  <br><br>
+
+  <!-- CA SELECTION (CHECKBOX STYLE) -->
+  <label><b>CA Selection</b></label><br>
+
+  <div style="border:1px solid #ccc; padding:8px; max-height:120px; overflow:auto;">
+
+    {% for l in ca_labels %}
+      <label style="display:block;">
+        <input type="checkbox" name="ca_labels" value="{{ l }}">
+        {{ l }}
+      </label>
+    {% endfor %}
+
+  </div>
+
+  <br>
+
+  <!-- DESIGN -->
+  <label><b>Design</b></label><br>
+
+  <select name="design" required>
+    {% for d in designs %}
+      <option value="{{ d }}">{{ d }}</option>
+    {% endfor %}
+  </select>
+
+  <br><br>
+
+  <button type="submit">Print Report Card</button>
+
+</form>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const STORAGE_KEY =
+    "report_card_selected_students";
+
+  const selectAll =
+    document.getElementById("select_all");
+
+  const selectAllValue =
+    document.getElementById("select_all_value");
+
+  const selectedCountEl =
+    document.getElementById("selected_count");
+
+  const form =
+    document.getElementById("mainForm");
+
+  const checkboxes =
+    document.querySelectorAll(".student_cb");
+
+  const ALL_IDS =
+    {{ filtered_all_ids|tojson }};
+
+  const TOTAL =
+    ALL_IDS.length;
+
+  let selectedIds = new Set(
+    JSON.parse(
+      localStorage.getItem(STORAGE_KEY)
+      || "[]"
+    )
+  );
+
+  let isGlobalSelectAll = false;
+
+  function save() {
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify([...selectedIds])
+    );
+  }
+
+  function updateCounter() {
+
+    selectedCountEl.innerText =
+      isGlobalSelectAll
+      ? TOTAL
+      : selectedIds.size;
+  }
+
+  function applyState() {
+
+    checkboxes.forEach(cb => {
+
+      cb.checked =
+        selectedIds.has(cb.value);
+
+    });
+  }
+
+  checkboxes.forEach(cb => {
+
+    cb.addEventListener("change", function () {
+
+      if (this.checked) {
+
+        selectedIds.add(this.value);
+
+      } else {
+
+        selectedIds.delete(this.value);
+
+        isGlobalSelectAll = false;
+
+        selectAll.checked = false;
+      }
+
+      save();
+
+      updateCounter();
+
+    });
+
+  });
+
+  selectAll.addEventListener("change", function () {
+
+    if (this.checked) {
+
+      isGlobalSelectAll = true;
+
+      selectedIds = new Set(ALL_IDS);
+
+      selectAllValue.value = "1";
+
+    } else {
+
+      isGlobalSelectAll = false;
+
+      selectedIds.clear();
+
+      selectAllValue.value = "0";
+
+    }
+
+    checkboxes.forEach(cb => {
+
+      cb.checked = this.checked;
+
+    });
+
+    save();
+
+    updateCounter();
+
+  });
+
+  form.addEventListener("submit", function () {
+
+    document.getElementById(
+      "student_ids_input"
+    ).value =
+      JSON.stringify([...selectedIds]);
+
+  });
+
+  applyState();
+
+  updateCounter();
+
+});
+
+</script>
+
+{% endblock %}

@@ -1,0 +1,1408 @@
+﻿{% extends 'base.html' %}
+{% block title %}Manage Groups{% endblock %}
+{% block content %}
+
+<h1 class="page-title">
+    📁 Group Explorer
+</h1>
+
+<div class="explorer">
+
+    <!-- ==========================
+         LEFT SIDEBAR
+    =========================== -->
+
+    <aside class="group-sidebar">
+
+        <div class="group-sidebar-header">
+
+            <div>
+                <h2>Groups</h2>
+                <small>Manage your hierarchy</small>
+            </div>
+
+            <button
+                type="button"
+                class="btn primary"
+                id="newRootBtn"
+            >
+                ➕ New Root
+            </button>
+
+        </div>
+
+        <!-- Search -->
+
+        <div class="search-area">
+
+            <input
+                id="groupSearch"
+                type="text"
+                placeholder="🔍 Search groups..."
+            >
+
+        </div>
+
+        <!-- Explorer Controls -->
+
+        <div class="tree-toolbar">
+
+            <button
+                type="button"
+                onclick="expandAll()"
+            >
+                Expand
+            </button>
+
+            <button
+                type="button"
+                onclick="collapseAll()"
+            >
+                Collapse
+            </button>
+
+        </div>
+
+        <!-- ==========================
+             GROUP TREE
+        =========================== -->
+
+        <div
+            class="tree-container"
+            id="treeContainer"
+        >
+		
+			{% macro render_group_option(group, prefix="") %}
+
+				<option value="{{ group.id }}">
+
+					{{ prefix }}{{ group.name }}
+
+				</option>
+
+				{% for child in group.children %}
+
+					{{ render_group_option(child, prefix ~ "└── ") }}
+
+				{% endfor %}
+
+			{% endmacro %}		
+
+        {% macro render_tree(group, level=0) %}
+
+            <div
+                class="tree-node"
+				onclick="selectGroup(this)"
+                data-id="{{ group.id }}"
+                data-name="{{ group.name }}"
+                data-parent="{{ group.parent.name if group.parent else 'Root Group' }}"
+                data-parent-id="{{ group.parent_id if group.parent_id else '' }}"
+                data-hide="{{ 'Yes' if group.hide_scores_for_subadmins else 'No' }}"
+                data-subjects="{{ group.subjects|length }}"
+                data-children="{{ group.children|length }}"
+                style="padding-left: {{ level * 22 }}px;"
+            >
+
+                {% if group.children %}
+
+                <span
+                    class="toggle"
+                    onclick="event.stopPropagation();toggleNode(this)"
+                >
+                    ▶
+                </span>
+
+                {% else %}
+
+                <span class="toggle empty"></span>
+
+                {% endif %}
+
+                <span class="folder">
+
+                    📁
+
+                </span>
+
+                <span
+                    class="group-name"
+                >
+
+                    {{ group.name }}
+
+                </span>
+
+                {% if group.children|length %}
+
+                <span class="badge">
+
+                    {{ group.children|length }}
+
+                </span>
+
+                {% endif %}
+
+            </div>
+
+            <div class="children">
+
+                {% for child in group.children %}
+
+                    {{ render_tree(child, level + 1) }}
+
+                {% endfor %}
+
+            </div>
+
+        {% endmacro %}
+
+			{% for g in roots %}
+				{{ render_tree(g) }}
+			{% endfor %}
+
+        </div>
+
+    </aside>
+
+    <!-- ==========================
+         RIGHT PANEL
+    =========================== -->
+
+    <main class="details-panel">
+
+        <section
+            id="detailsContent"
+            class="empty-panel"
+        >
+
+            <div class="empty-icon">
+
+                📂
+
+            </div>
+
+            <h2>
+
+                No Group Selected
+
+            </h2>
+
+            <p>
+
+                Select a group from the Explorer
+                to edit its settings.
+
+            </p>
+
+        </section>
+
+        <section
+            id="groupEditor"
+            style="display:none;"
+        >
+
+            <div
+                class="breadcrumb"
+                id="breadcrumb"
+            >
+
+                🏠 Groups
+
+            </div>
+
+            <div class="editor-header">
+
+                <div>
+
+                    <h2 id="editorTitle"></h2>
+
+                    <small id="editorSubtitle">
+
+                        Group Information
+
+                    </small>
+
+                </div>
+
+            </div>
+
+            <!-- Summary -->
+
+            <div class="summary-grid">
+
+                <div class="summary-card">
+
+                    <div class="label">
+
+                        Parent
+
+                    </div>
+
+                    <div
+                        class="value"
+                        id="parentDisplay"
+                    >
+
+                        Root Group
+
+                    </div>
+
+                </div>
+
+                <div class="summary-card">
+
+                    <div class="label">
+
+                        Child Groups
+
+                    </div>
+
+                    <div
+                        class="value"
+                        id="childrenDisplay"
+                    >
+
+                        0
+
+                    </div>
+
+                </div>
+
+                <div class="summary-card">
+
+                    <div class="label">
+
+                        Subjects
+
+                    </div>
+
+                    <div
+                        class="value"
+                        id="subjectsDisplay"
+                    >
+
+                        0
+
+                    </div>
+
+                </div>
+
+                <div class="summary-card">
+
+                    <div class="label">
+
+                        Hidden Scores
+
+                    </div>
+
+                    <div
+                        class="value"
+                        id="hideDisplay"
+                    >
+
+                        No
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ==========================
+                 EDIT GROUP
+            =========================== -->
+
+            <div class="card">
+
+                <h3>
+
+                    ✏ Edit Group
+
+                </h3>
+
+                <form method="post">
+
+					<input
+						type="hidden"
+						id="editorAction"
+						name="action"
+						value="update"
+					>
+
+                    <input
+                        type="hidden"
+                        id="groupId"
+                        name="id"
+                    >
+					
+                    <label class="form-label">
+
+                        Group Name
+
+                    </label>
+
+                    <input
+                        id="groupName"
+                        class="form-control"
+                        type="text"
+                        name="name"
+                        required
+                    >
+
+                    <label class="form-label">
+
+                        Parent Group
+
+                    </label>
+
+                    <select
+                        id="groupParent"
+                        class="form-control"
+                        name="parent_id"
+                    >
+
+                        <option value="">
+                            Root Group
+                        </option>
+
+
+
+							{% for g in roots %}
+								{{ render_group_option(g) }}
+							{% endfor %}
+
+                    </select>
+
+                    <div class="checkbox-row">
+
+                        <label>
+
+                            <input
+                                id="groupHide"
+                                type="checkbox"
+                                name="hide_scores"
+                            >
+
+                            Hide scores from subadmins
+
+                        </label>
+
+                    </div>
+
+                    <div class="button-row">
+
+                        <button
+                            class="btn primary"
+                            type="submit"
+                        >
+
+                            💾 Save Changes
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <!-- ==========================
+                 CREATE CHILD GROUP
+            =========================== -->
+
+            <div class="card">
+
+                <h3>
+
+                    ➕ Create Child Group
+
+                </h3>
+
+                <p class="card-note">
+
+                    The new group will become a child
+                    of the currently selected group.
+
+                </p>
+
+                <form method="post">
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="create"
+                    >
+
+                    <input
+                        id="childParent"
+                        type="hidden"
+                        name="parent_id"
+                    >
+
+                    <label class="form-label">
+
+                        Child Group Name
+
+                    </label>
+
+                    <input
+                        class="form-control"
+                        type="text"
+                        name="name"
+                        placeholder="Enter child group name"
+                        required
+                    >
+
+                    <div class="button-row">
+
+                        <button
+                            class="btn success"
+                            type="submit"
+                        >
+
+                            ➕ Create Child Group
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+            <!-- ==========================
+                 DANGER ZONE
+            =========================== -->
+
+            <div class="card danger">
+
+                <h3>
+
+                    🗑 Delete Group
+
+                </h3>
+
+                <p>
+
+                    Deleting this group will remove it
+                    from the hierarchy according to the
+                    application rules.
+
+                </p>
+
+                <form method="post">
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="delete"
+                    >
+
+                    <input
+                        id="deleteId"
+                        type="hidden"
+                        name="id"
+                    >
+
+                    <button
+                        class="btn danger"
+                        type="submit"
+                        onclick="return confirm('Delete this group?')"
+                    >
+
+                        🗑 Delete Group
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<style>
+
+body{
+
+    background:#f4f6fa;
+
+    margin:0;
+
+}
+
+.page-title{
+
+    margin-bottom:20px;
+
+    font-size:30px;
+
+    font-weight:700;
+
+}
+
+.explorer{
+
+    display:grid;
+
+    grid-template-columns:340px 1fr;
+
+    gap:24px;
+
+    min-height:700px;
+
+}
+
+
+.details-panel{
+
+    background:#fff;
+
+    border-radius:12px;
+
+    box-shadow:0 2px 12px rgba(0,0,0,.08);
+
+}
+
+.group-sidebar{
+
+    display:flex;
+
+    flex-direction:column;
+
+    overflow:hidden;
+
+}
+
+.group-sidebar-header{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    padding:18px;
+
+    border-bottom:1px solid #ececec;
+
+}
+
+.group-sidebar-header h2{
+
+    margin:0;
+
+}
+
+.group-sidebar-header small{
+
+    color:#777;
+
+}
+
+.search-area{
+
+    padding:18px;
+
+}
+
+.search-area input{
+
+    width:100%;
+
+    padding:10px 12px;
+
+    border:1px solid #ccc;
+
+    border-radius:8px;
+
+    box-sizing:border-box;
+
+}
+
+.tree-toolbar{
+
+    display:flex;
+
+    gap:10px;
+
+    padding:0 18px 18px;
+
+}					
+
+.tree-toolbar button{
+
+    flex:1;
+
+    padding:8px 12px;
+
+    border:none;
+
+    border-radius:8px;
+
+    background:#eef2f7;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.tree-toolbar button:hover{
+
+    background:#dbe8ff;
+
+}
+
+.tree-container{
+
+    flex:1;
+
+    overflow-y:auto;
+
+    padding:8px;
+
+}
+
+.tree-node{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    padding:8px 10px;
+
+    margin:2px 0;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    transition:.18s;
+
+    user-select:none;
+
+}
+
+.tree-node:hover{
+
+    background:#edf4ff;
+	transform:translateX(3px);
+
+}
+
+.tree-node.selected{
+
+    background:#dbeafe;
+
+    border-left:4px solid #2563eb;
+
+    color:#1d4ed8;
+
+    font-weight:600;
+
+}
+
+.toggle{
+
+    width:18px;
+
+    text-align:center;
+
+    cursor:pointer;
+
+    font-size:12px;
+
+    color:#666;
+
+    flex-shrink:0;
+
+}
+
+.toggle.empty{
+
+    visibility:hidden;
+
+}
+
+.folder{
+
+    font-size:17px;
+
+}
+
+.group-name{
+
+    flex:1;
+
+    white-space:nowrap;
+
+    overflow:hidden;
+
+    text-overflow:ellipsis;
+
+}
+
+.badge{
+
+    background:#edf2ff;
+
+    color:#3056d3;
+
+    font-size:12px;
+
+    padding:2px 8px;
+
+    border-radius:999px;
+
+    font-weight:600;
+
+}
+
+.children{
+
+    display:none;
+
+}
+
+.details-panel{
+
+    padding:24px;
+
+    overflow-y:auto;
+
+}
+
+.empty-panel{
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    text-align:center;
+
+    min-height:600px;
+
+    color:#666;
+
+}
+
+.empty-icon{
+
+    font-size:70px;
+
+    margin-bottom:16px;
+
+}
+
+.breadcrumb{
+
+    font-size:14px;
+
+    color:#777;
+
+    border-bottom:1px solid #e5e5e5;
+
+    padding-bottom:12px;
+
+    margin-bottom:20px;
+
+}
+
+.editor-header{
+
+    margin-bottom:20px;
+
+}
+
+.editor-header h2{
+
+    margin:0;
+
+}
+
+.editor-header small{
+
+    color:#777;
+
+}
+
+.summary-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+
+    gap:16px;
+
+    margin-bottom:24px;
+
+}
+
+.summary-card{
+
+    padding:18px;
+
+    border-radius:10px;
+
+    background:#f8fafc;
+
+    border:1px solid #e5e7eb;
+
+}
+
+.summary-card .label{
+
+    color:#6b7280;
+
+    font-size:12px;
+
+    text-transform:uppercase;
+
+    letter-spacing:.5px;
+
+}
+
+.summary-card .value{
+
+    margin-top:6px;
+
+    font-size:22px;
+
+    font-weight:700;
+
+    color:#111827;
+
+}
+
+.card{
+
+    background:#fff;
+
+    border:1px solid #e6e8ec;
+
+    border-radius:10px;
+
+    padding:22px;
+
+    margin-bottom:22px;
+
+}
+
+.card h3{
+
+    margin-top:0;
+
+    margin-bottom:16px;
+
+}
+
+.card-note{
+
+    color:#666;
+
+    margin-bottom:18px;
+
+}
+
+.form-label{
+
+    display:block;
+
+    margin:16px 0 8px;
+
+    font-weight:600;
+
+}
+
+.form-control{
+
+    width:100%;
+
+    padding:10px 12px;
+
+    border:1px solid #d4d7dd;
+
+    border-radius:8px;
+
+    box-sizing:border-box;
+
+}
+
+.form-control:focus{
+
+    outline:none;
+
+    border-color:#0d6efd;
+
+}
+
+.checkbox-row{
+
+    margin-top:18px;
+
+}
+
+.button-row{
+
+    margin-top:22px;
+
+}
+
+.btn{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    gap:6px;
+
+    padding:10px 16px;
+
+    border:none;
+
+    border-radius:8px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    transition:.2s;
+
+}
+
+.btn.primary{
+
+    background:#2563eb;
+
+    color:#fff;
+
+}
+
+.btn.success{
+
+    background:#16a34a;
+
+    color:#fff;
+
+}
+
+.btn.danger{
+
+    background:#dc2626;
+
+    color:#fff;
+
+}
+
+.tree-toolbar button{
+
+    background:#f3f4f6;
+
+    color:#374151;
+
+}
+
+.btn.primary:hover{
+
+    background:#0b5ed7;
+
+}
+
+
+
+.btn.success:hover{
+
+    background:#157347;
+
+}
+
+.button-row .btn{
+
+    width:100%;
+
+}
+
+.btn.danger:hover{
+
+    background:#bb2d3b;
+
+}
+
+.card.danger .btn{
+
+    width:100%;
+
+}
+
+.card.danger{
+
+    border-color:#f3c2c7;
+
+    background:#fff8f8;
+
+}
+
+@media(max-width:900px){
+
+    .explorer{
+
+        grid-template-columns:1fr;
+
+    }
+
+}
+
+/* ===== Sidebar ===== */
+
+.group-sidebar{
+
+    color:#222;
+
+}
+
+.group-sidebar h2{
+
+    color:#1f2937;
+
+}
+
+.group-sidebar small{
+
+    color:#6b7280;
+
+}
+
+.tree-node{
+
+    color:#1f2937;
+	transition:.15s;
+
+}
+
+.group-name{
+
+    color:#1f2937;
+
+}
+
+.folder{
+
+	color:#d97706;
+
+    width:22px;
+
+    text-align:center;
+
+    flex-shrink:0;
+
+}
+
+.toggle{
+
+    color:#6b7280;
+
+}
+
+.search-area input{
+
+    color:#1f2937;
+
+    background:#ffffff;
+
+}
+
+.search-area input::placeholder{
+
+    color:#9ca3af;
+
+}
+
+</style>
+
+<script>
+
+function toggleNode(btn){
+
+    const children =
+        btn.parentElement.nextElementSibling;
+
+    if(!children) return;
+
+    if(children.style.display==="block"){
+
+        children.style.display="none";
+
+        btn.innerHTML="▶";
+
+    }else{
+
+        children.style.display="block";
+
+        btn.innerHTML="▼";
+
+    }
+
+}
+
+function selectGroup(element){
+
+    document
+        .querySelectorAll(".tree-node")
+        .forEach(node=>{
+
+            node.classList.remove("selected");
+
+        });
+
+    const node = element;
+
+    node.classList.add("selected");
+
+    document
+        .getElementById("detailsContent")
+        .style.display="none";
+
+    document
+        .getElementById("groupEditor")
+        .style.display="block";
+
+    document
+        .getElementById("editorTitle")
+        .innerHTML="📁 "+node.dataset.name;
+		
+	document
+		.getElementById("editorAction")
+		.value="update";		
+
+    document
+        .getElementById("breadcrumb")
+        .innerHTML=
+            "🏠 Groups / "+
+            node.dataset.name;
+
+    document
+        .getElementById("groupId")
+        .value=node.dataset.id;
+
+    document
+        .getElementById("deleteId")
+        .value=node.dataset.id;
+
+    document
+        .getElementById("childParent")
+        .value=node.dataset.id;
+
+    document
+        .getElementById("groupName")
+        .value=node.dataset.name;
+
+    document
+        .getElementById("groupParent")
+        .value=node.dataset.parentId;
+
+    document
+        .getElementById("groupHide")
+        .checked=
+            node.dataset.hide==="Yes";
+
+    document
+        .getElementById("parentDisplay")
+        .textContent=
+            node.dataset.parent;
+
+    document
+        .getElementById("childrenDisplay")
+        .textContent=
+            node.dataset.children;
+
+    document
+        .getElementById("subjectsDisplay")
+        .textContent=
+            node.dataset.subjects;
+
+    document
+        .getElementById("hideDisplay")
+        .textContent=
+            node.dataset.hide;
+
+}
+
+function expandAll(){
+
+    document
+        .querySelectorAll(".children")
+        .forEach(children=>{
+
+            children.style.display="block";
+
+        });
+
+    document
+        .querySelectorAll(".toggle")
+        .forEach(btn=>{
+
+            if(!btn.classList.contains("empty")){
+
+                btn.innerHTML="▼";
+
+            }
+
+        });
+
+}
+
+function collapseAll(){
+
+    document
+        .querySelectorAll(".children")
+        .forEach(children=>{
+
+            children.style.display="none";
+
+        });
+
+    document
+        .querySelectorAll(".toggle")
+        .forEach(btn=>{
+
+            if(!btn.classList.contains("empty")){
+
+                btn.innerHTML="▶";
+
+            }
+
+        });
+
+}
+
+function searchGroups(){
+
+    const search=
+    document
+    .getElementById("groupSearch")
+    .value
+    .toLowerCase()
+    .trim();
+
+    if(search===""){
+
+        collapseAll();
+
+        document
+        .querySelectorAll(".tree-node")
+        .forEach(node=>{
+
+            node.style.display="flex";
+
+        });
+
+        return;
+
+    }
+
+    expandAll();
+
+    document
+    .querySelectorAll(".tree-node")
+    .forEach(node=>{
+
+        const visible=
+        node.dataset.name
+        .toLowerCase()
+        .includes(search);
+
+        node.style.display=
+        visible ? "flex":"none";
+
+    });
+
+}
+
+document
+    .getElementById("groupSearch")
+    .addEventListener(
+        "keyup",
+        searchGroups
+    );
+
+document
+.getElementById("newRootBtn")
+.addEventListener("click",function(){
+
+    document
+    .querySelectorAll(".tree-node")
+    .forEach(node=>{
+
+        node.classList.remove("selected");
+
+    });
+
+    document
+    .getElementById("detailsContent")
+    .style.display="none";
+
+    document
+    .getElementById("groupEditor")
+    .style.display="block";
+
+    document
+    .getElementById("editorTitle")
+    .innerHTML="➕ New Group";
+
+    document
+    .getElementById("breadcrumb")
+    .innerHTML="🏠 Groups / New Root Group";
+
+    document
+    .getElementById("editorAction")
+    .value="create";
+
+    document
+    .getElementById("groupId")
+    .value="";
+
+    document
+    .getElementById("groupName")
+    .value="";
+
+    document
+    .getElementById("groupParent")
+    .value="";
+
+    document
+    .getElementById("groupHide")
+    .checked=false;
+	
+	document
+	.getElementById("parentDisplay")
+	.textContent="Root Group";
+
+	document
+	.getElementById("childrenDisplay")
+	.textContent="0";
+
+	document
+	.getElementById("subjectsDisplay")
+	.textContent="0";
+
+	document
+	.getElementById("hideDisplay")
+	.textContent="No";	
+
+});
+
+</script>
+
+{% endblock %}

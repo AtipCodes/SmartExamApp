@@ -1,0 +1,256 @@
+﻿{% extends 'base.html' %}
+
+{% block title %} Upload Questions {% endblock %}
+
+{% block content %}
+
+<h2>Upload Questions</h2>
+
+<form method="post" enctype="multipart/form-data">
+
+  <!-- SUBJECT -->
+  <label>Subject
+	<select name="subject_id">
+
+	  {% for s in subjects %}
+
+		<option value="{{ s.id }}">
+
+		  {{ s.name }}
+
+		  {% if s.label %}
+			[{{ s.label }}]
+		  {% endif %}
+
+		  {% if s.group %}
+			- {{ s.group.name }}
+		  {% endif %}
+
+		</option>
+
+	  {% endfor %}
+
+	</select>
+  </label>
+
+  <hr>
+
+  <!-- ================= OBJECTIVE ================= -->
+  <h3>Objective Upload</h3>
+
+  <input type="file" name="file"><br><br>
+
+  <textarea name="prompt" placeholder="Question"></textarea><br>
+  <input type="text" name="choices" placeholder="Choice 1"><br>
+  <input type="text" name="choices" placeholder="Choice 2"><br>
+  <input type="text" name="choices" placeholder="Choice 3"><br>
+  <input type="text" name="choices" placeholder="Choice 4"><br>
+  <input type="text" name="answer" placeholder="Answer"><br>
+  <input type="file" name="image"><br><br>
+
+  <button class="btn">Upload Objective</button>
+
+  <hr>
+
+  <!-- ================= THEORY TEXT ================= -->
+  <h3>Theory Text Upload</h3>
+
+  <textarea name="theory_text" rows="8" style="width:100%;"
+    placeholder="1: Question
+Answer: Answer"></textarea><br><br>
+
+  <button class="btn" name="save_theory_text">Save Theory Text</button>
+
+  <hr>
+
+  <!-- ================= THEORY IMAGE ================= -->
+  <h3>Theory Image Upload</h3>
+
+  <input type="number" name="theory_q_number" placeholder="Question Number"><br><br>
+  <input type="file" name="theory_image"><br><br>
+
+  <button class="btn" name="upload_theory_image">Upload Theory Image</button>
+
+</form>
+
+<hr>
+
+<h3>Last 10 Subjects</h3>
+{% if recent_subjects %}
+  <div class="recent-subjects">
+    {% for s in recent_subjects %}
+      <div class="subject-card">
+        <strong>{{ s.name }}</strong>
+        {% if s.group %}<span style="color:gray;"> ({{ s.group.name }})</span>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <p>No subjects found.</p>
+{% endif %}
+
+<hr>
+
+<h3>Uploaded Questions by Subject</h3>
+{% if subjects %}
+  {% for s in subjects %}
+    <div class="subject-card">
+	<div style="display:flex;
+				flex-wrap:wrap;
+				gap:8px;
+				align-items:center;
+				margin-bottom:8px;">
+
+	  <!-- Toggle Questions -->
+	  <button class="btn btn-secondary btn-sm"
+			  type="button"
+			  onclick="toggleQuestions('subject_{{ s.id }}')">
+
+		{{ s.name }}
+
+		{% if s.label %}
+		  [{{ s.label }}]
+		{% endif %}
+
+		{% if s.group %}
+		  ({{ s.group.name }})
+		{% endif %}
+
+		▼
+
+	  </button>
+
+	  <!-- Edit Subject -->
+	  <a href="{{ url_for('edit_subject', subject_id=s.id) }}"
+		 class="btn btn-sm btn-primary">
+
+		 Edit
+
+	  </a>
+
+	  <!-- Edit Questions -->
+	  <a href="{{ url_for('edit_questions', subject_id=s.id) }}"
+		 class="btn btn-sm btn-warning">
+
+		 Edit Questions
+
+	  </a>
+
+	  <!-- Review Questions -->
+	  <a href="{{ url_for('review_questions', subject_id=s.id) }}"
+		 class="btn btn-sm btn-info">
+
+		 Review Questions
+
+	  </a>
+
+	  <!-- Theory Questions -->
+	  <a href="{{ url_for('theory_questions', subject_id=s.id) }}"
+		 class="btn btn-sm btn-success">
+
+		 Theory Questions
+
+	  </a>
+
+	</div>
+
+      <div id="subject_{{ s.id }}" class="subject-questions" style="display:none; margin-top:8px;">
+        {% set questions = subject_questions_paginated[s.id] %}
+        {% if questions.items %}
+          {% for q in questions.items %}
+            <div class="question-card">
+              <p><strong>Q:</strong> {{ q.prompt }}</p>
+
+              {% if q.choices_json %}
+                <ul>
+                  {% for c in q.choices_json|fromjson %}
+                    <li>{{ c }}</li>
+                  {% endfor %}
+                </ul>
+              {% endif %}
+
+              <p><strong>Answer:</strong> {{ q.answer }}</p>
+
+              {% if q.image %}
+                <img src="/static/uploads/{{ q.image }}" width="150"><br>
+              {% endif %}
+
+              <p>
+                <strong>Allowed Subadmins:</strong>
+                {% set subs = subject_subadmins.get(q.subject_id, []) %}
+                {% if subs %}
+                  {% for sa in subs %}
+                    <span class="tag">{{ sa.username }}</span>
+                  {% endfor %}
+                {% else %}
+                  <span style="color:gray;">None</span>
+                {% endif %}
+              </p>
+            </div>
+            <hr>
+          {% endfor %}
+
+          <!-- Pagination for this subject -->
+          <div style="margin-top:5px;">
+            {% set prev_args = request.args.to_dict() %}
+            {% set prev_args = prev_args.update({ 'page_' ~ s.id: questions.prev_num }) or prev_args %}
+            {% if questions.has_prev %}
+              <a href="{{ url_for('upload_questions', **prev_args) }}">⬅ Prev</a>
+            {% endif %}
+
+            <span> Page {{ questions.page }} of {{ questions.pages }} </span>
+
+            {% set next_args = request.args.to_dict() %}
+            {% set next_args = next_args.update({ 'page_' ~ s.id: questions.next_num }) or next_args %}
+            {% if questions.has_next %}
+              <a href="{{ url_for('upload_questions', **next_args) }}">Next ➡</a>
+            {% endif %}
+          </div>
+
+        {% else %}
+          <p>No questions for this subject yet.</p>
+        {% endif %}
+      </div>
+    </div>
+    <br>
+  {% endfor %}
+{% else %}
+  <p>No subjects available.</p>
+{% endif %}
+
+<script>
+function toggleQuestions(id) {
+  const el = document.getElementById(id);
+  el.style.display = (el.style.display === 'none') ? 'block' : 'none';
+}
+</script>
+
+<style>
+.subject-card{
+    background:#fff;
+    padding:10px 12px;
+    border-radius:6px;
+    margin-bottom:8px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+.question-card{
+    background:#fefefe;
+    padding:12px;
+    border-radius:6px;
+    margin-bottom:10px;
+    box-shadow:0 1px 3px rgba(0,0,0,0.08);
+}
+.tag{
+    display:inline-block;
+    background:#e5e7eb;
+    padding:3px 8px;
+    border-radius:12px;
+    margin-right:5px;
+    font-size:0.8rem;
+}
+.subject-questions{
+    margin-left:15px;
+}
+</style>
+
+{% endblock %}

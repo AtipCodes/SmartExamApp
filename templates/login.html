@@ -1,0 +1,1659 @@
+{% extends 'base.html' %}
+{% block title %}Login / Register{% endblock %}
+
+{% block content %}
+
+<div class="auth-container">
+
+    <!-- ==========================
+         LEFT WELCOME PANEL
+    =========================== -->
+
+    <div class="welcome-panel">
+
+        <div class="welcome-content">
+
+            <h1>
+                CBT Examination System
+            </h1>
+
+            <p class="tagline">
+                Secure • Fast • Multi-Institution
+            </p>
+
+            <div class="feature-list">
+
+                <div class="feature">
+                    ✔ Secure Computer-Based Examination
+                </div>
+
+                <div class="feature">
+                    ✔ Multi-Institution Support
+                </div>
+
+                <div class="feature">
+                    ✔ Automatic Result Processing
+                </div>
+
+                <div class="feature">
+                    ✔ Report Cards
+                </div>
+
+                <div class="feature">
+                    ✔ Analytics Dashboard
+                </div>
+
+                <div class="feature">
+                    ✔ Licensing Management
+                </div>
+
+                <div class="feature">
+                    ✔ Cloud Synchronization
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- ==========================
+         RIGHT LOGIN PANEL
+    =========================== -->
+
+    <div class="login-panel">
+
+        <div class="login-card">
+
+            {% with messages =
+                get_flashed_messages(
+                    with_categories=true
+                )
+            %}
+
+            {% if messages %}
+
+            <div class="flash-container">
+
+                {% for category,message in messages %}
+
+                <div class="flash {{ category }}">
+
+                    {{ message }}
+
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+            {% endif %}
+
+            {% endwith %}
+
+            <h2>
+
+                Welcome
+
+            </h2>
+
+            <p class="subtitle">
+
+                Login or create a new account.
+
+            </p>
+
+            <div class="tab-bar">
+
+                <button
+                    type="button"
+                    class="tab-button active"
+                    data-tab="login-tab">
+
+                    Login
+
+                </button>
+
+                <button
+                    type="button"
+                    class="tab-button"
+                    data-tab="register-tab">
+
+                    Register
+
+                </button>
+
+            </div>
+<div
+    class="tab-content active"
+    id="login-tab">
+
+    <form
+        method="post"
+        class="login-form">
+
+        <input
+            type="hidden"
+            name="action"
+            value="login">
+
+        <div>
+
+            <label>
+
+                Username
+
+                <input
+                    type="text"
+                    name="username"
+                    required>
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Password
+
+                <input
+                    type="password"
+                    name="password"
+                    required>
+
+            </label>
+
+        </div>
+
+        <button class="btn">
+
+            Login
+
+        </button>
+
+    </form>
+
+    <p>
+
+        <a
+            class="forgot-link"
+            href="{{ url_for('reset_password_request') }}">
+
+            🔑 Forgot Password? (Admin/Licensing only)
+
+        </a>
+
+    </p>
+
+    <p>
+
+        <a
+            class="forgot-link"
+            href="{{ url_for('owner_recovery_request') }}">
+
+            Forgot Admin/Licenser Access?
+
+        </a>
+
+    </p>
+
+</div>	
+	<!-- ======================================
+     REGISTER TAB
+======================================= -->
+
+<div
+    class="tab-content"
+    id="register-tab">
+
+    <div class="register-role">
+
+        <label>
+
+            Register As
+
+            <select
+                id="register_role" class="role-select">
+				
+                <option
+                    value="student">
+
+                    Student
+
+                </option>
+
+                <option
+                    value="institution_admin">
+
+                    Institution Administrator
+
+                </option>
+
+            </select>
+
+        </label>
+
+    </div>
+
+    <!-- ==============================
+         STUDENT REGISTRATION
+    =============================== -->
+
+    <form
+        method="post"
+        class="login-form"
+        id="student-register">
+
+        <input
+            type="hidden"
+            name="action"
+            value="register">
+
+        <div>
+
+            <label>
+
+                First Name
+
+                <input
+                    type="text"
+                    name="first_name"
+                    required>
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Surname
+
+                <input
+                    type="text"
+                    name="last_name"
+                    required>
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Email (Optional)
+
+                <input
+                    type="email"
+                    name="email">
+
+            </label>
+
+        </div>
+
+<div class="institution-picker">
+
+    <label>
+
+        Institution
+
+    </label>
+
+    <input
+        type="text"
+        id="institution_search"
+        placeholder="Search institution..."
+        autocomplete="off"
+        required>
+
+    <input
+        type="hidden"
+        id="institution_id"
+        name="institution_id">
+
+    <div
+        id="institution_results"
+        class="institution-results">
+
+    </div>
+
+</div>
+
+        <div>
+
+            <label>
+
+                Username
+
+                <input
+                    type="text"
+                    name="username"
+                    required>
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Password
+
+                <input
+                    type="password"
+                    name="password"
+                    required>
+
+            </label>
+
+        </div>
+
+        <button
+            class="btn">
+
+            Register Student
+
+        </button>
+
+    </form>
+
+    <!-- ==============================
+         INSTITUTION ADMIN
+    =============================== -->
+
+    <form
+        method="post"
+        class="login-form"
+        id="institution-register"
+        style="display:none;">
+
+        <input
+            type="hidden"
+            name="action"
+            value="institution_register">
+
+        <div>
+
+            <label>
+
+                First Name
+
+                <input
+                    type="text"
+                    name="first_name"
+                    required>
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Surname
+
+                <input
+                    type="text"
+                    name="last_name"
+                    required>
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Email
+
+                <input
+                    type="email"
+                    name="email">
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Phone
+
+                <input
+                    type="text"
+                    name="phone">
+
+            </label>
+
+        </div>
+
+		<div class="form-group mt-3">
+
+			<label><strong>Institution Registration</strong></label>
+
+			<select
+				class="form-control"
+				id="institution_registration_type"
+				name="institution_registration_type">
+
+				<option value="new" selected>
+					Create New Institution
+				</option>
+
+				<option value="existing">
+					Join Existing Institution
+				</option>
+
+				<option value="none">
+					No Institution Yet
+				</option>
+
+			</select>
+
+		</div>
+	
+		<div id="newInstitutionSection">
+        <div>
+
+            <label>
+
+                Institution Name
+
+                <input
+                    type="text"
+                    name="institution_name"
+                    required>
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Institution Code
+
+                <input
+                    type="text"
+                    name="institution_code">
+
+            </label>
+
+        </div>
+		</div>
+		
+		<div
+			id="existingInstitutionSection"
+			style="display:none;">
+
+			<label>Select Existing Institution</label>
+
+			<input
+				type="text"
+				id="existingInstitutionSearch"
+				class="form-control"
+				placeholder="Search institution...">
+
+			<input
+				type="hidden"
+				id="existing_institution_id"
+				name="existing_institution_id">
+
+		</div>	
+
+		<div
+			id="noInstitutionSection"
+			style="display:none;">
+
+			<div class="alert alert-info">
+
+				You may register without selecting an institution.
+				The Global Administrator will assign one during approval.
+
+			</div>
+
+		</div>		
+
+        <div>
+
+            <label>
+
+                Username
+
+                <input
+                    type="text"
+                    name="username"
+                    required>
+
+            </label>
+
+        </div>
+
+        <div>
+
+            <label>
+
+                Password
+
+                <input
+                    type="password"
+                    name="password"
+                    required>
+
+            </label>
+
+        </div>
+
+        <button
+            class="btn">
+
+            Submit Registration
+
+        </button>
+
+    </form>
+
+</div>	
+		
+
+    </div>
+
+</div>
+
+<style>
+.register-role{
+
+    margin-bottom:20px;
+
+}
+
+.register-role select{
+
+    width:100%;
+
+    padding:11px;
+
+    border:1px solid #d0d7de;
+
+    border-radius:8px;
+
+    margin-top:6px;
+
+}
+
+.institution-picker{
+
+    position:relative;
+
+}
+
+
+
+.institution-item:hover{
+
+    background:#edf5ff;
+
+}
+
+.institution-picker{
+
+    position:relative;
+
+}
+
+.institution-results{
+
+    position:absolute;
+
+    top:calc(100% + 4px);
+
+    left:0;
+
+    right:0;
+
+    background:#fff;
+
+    border:1px solid #d0d7de;
+
+    border-radius:10px;
+
+    max-height:250px;
+
+    overflow-y:auto;
+
+    display:none;
+
+    z-index:9999;
+
+    box-shadow:
+        0 12px 28px rgba(0,0,0,.12);
+
+}
+
+.institution-item{
+
+    padding:12px 14px;
+
+    cursor:pointer;
+
+    transition:background .15s;
+
+    border-bottom:1px solid #f2f2f2;
+
+}
+
+.institution-item:last-child{
+
+    border-bottom:none;
+
+}
+
+.institution-item:hover,
+
+.institution-item.active{
+
+    background:#eaf3ff;
+
+}
+
+.institution-name{
+
+    font-weight:600;
+
+    color:#222;
+
+}
+
+.institution-code{
+
+    font-size:12px;
+
+    color:#777;
+
+    margin-top:2px;
+
+}
+
+.institution-empty{
+
+    padding:14px;
+
+    color:#777;
+
+    text-align:center;
+
+}
+
+.institution-loading{
+
+    padding:12px;
+
+    text-align:center;
+
+    color:#666;
+
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif;
+}
+
+body{
+
+    background:#edf3f9;
+
+}
+
+/* ===========================
+        PAGE LAYOUT
+=========================== */
+
+.auth-container{
+
+    display:flex;
+
+    min-height:100vh;
+
+}
+
+/* ===========================
+      LEFT PANEL
+=========================== */
+
+.welcome-panel{
+
+    flex:1;
+
+    background:linear-gradient(
+        135deg,
+        #0d6efd,
+        #0b5ed7,
+        #084298
+    );
+
+    color:white;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:60px;
+
+}
+
+.welcome-content{
+
+    max-width:500px;
+
+}
+
+.welcome-content h1{
+
+    font-size:42px;
+
+    margin-bottom:15px;
+
+    font-weight:700;
+
+}
+
+.tagline{
+
+    font-size:20px;
+
+    opacity:.9;
+
+    margin-bottom:40px;
+
+}
+
+.feature-list{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:18px;
+
+}
+
+.feature{
+
+    background:rgba(255,255,255,.12);
+
+    padding:15px 18px;
+
+    border-radius:10px;
+
+    backdrop-filter:blur(8px);
+
+    transition:.25s;
+
+}
+
+.feature:hover{
+
+    transform:translateX(8px);
+
+    background:rgba(255,255,255,.20);
+
+}
+
+/* ===========================
+      RIGHT PANEL
+=========================== */
+
+.login-panel{
+
+    width:520px;
+
+    background:#f8fbff;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:50px;
+
+}
+
+.login-card{
+
+    width:100%;
+
+    background:white;
+
+    border-radius:18px;
+
+    padding:35px;
+
+    box-shadow:
+
+        0 15px 45px rgba(0,0,0,.10);
+
+}
+
+.login-card h2{
+
+    text-align:center;
+
+    color:#0b5ed7;
+
+    margin-bottom:8px;
+
+}
+
+.subtitle{
+
+    text-align:center;
+
+    color:#777;
+
+    margin-bottom:30px;
+
+}
+
+/* ===========================
+          TABS
+=========================== */
+
+.tab-bar{
+
+    display:flex;
+
+    gap:10px;
+
+    margin-bottom:25px;
+
+}
+
+.tab-button{
+
+    flex:1;
+
+    border:none;
+
+    background:#edf3f9;
+
+    padding:12px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-weight:600;
+
+    transition:.25s;
+
+}
+
+.tab-button:hover{
+
+    background:#d8e8ff;
+
+}
+
+.tab-button.active{
+
+    background:#0d6efd;
+
+    color:white;
+
+}
+
+/* ===========================
+       TAB CONTENT
+=========================== */
+
+.tab-content{
+
+    display:none;
+
+    animation:fade .25s ease;
+
+}
+
+.tab-content.active{
+
+    display:block;
+
+}
+
+@keyframes fade{
+
+from{
+
+opacity:0;
+
+transform:translateY(10px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
+
+}
+
+/* ===========================
+          FORM
+=========================== */
+
+.login-form{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:15px;
+
+}
+
+.login-form label{
+
+    font-weight:600;
+
+    color:#444;
+
+}
+
+.login-form input,
+
+.login-form select{
+
+    width:100%;
+
+    margin-top:5px;
+
+    padding:11px 12px;
+
+    border:1px solid #d0d7de;
+
+    border-radius:8px;
+
+    font-size:15px;
+
+    transition:.25s;
+
+}
+
+.login-form input:focus,
+
+.login-form select:focus{
+
+    outline:none;
+
+    border-color:#0d6efd;
+
+    box-shadow:
+
+        0 0 0 4px rgba(13,110,253,.15);
+
+}
+
+/* ===========================
+         BUTTON
+=========================== */
+
+.btn{
+
+    margin-top:10px;
+
+    background:#0d6efd;
+
+    color:white;
+
+    border:none;
+
+    border-radius:8px;
+
+    padding:13px;
+
+    font-size:15px;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+}
+
+.btn:hover{
+
+    background:#084298;
+
+    transform:translateY(-2px);
+
+}
+
+/* ===========================
+       LINKS
+=========================== */
+
+.forgot-link{
+
+    display:block;
+
+    text-align:center;
+
+    margin-top:15px;
+
+    color:#0d6efd;
+
+    text-decoration:none;
+
+}
+
+.forgot-link:hover{
+
+    text-decoration:underline;
+
+}
+
+/* ===========================
+         RESPONSIVE
+=========================== */
+
+@media(max-width:1000px){
+
+.auth-container{
+
+flex-direction:column;
+
+}
+
+.welcome-panel{
+
+padding:40px;
+
+}
+
+.login-panel{
+
+width:100%;
+
+padding:30px;
+
+}
+
+}
+
+@media(max-width:600px){
+
+.welcome-content h1{
+
+font-size:32px;
+
+}
+
+.tagline{
+
+font-size:17px;
+
+}
+
+.login-card{
+
+padding:25px;
+
+}
+
+.tab-bar{
+
+flex-direction:column;
+
+}
+
+}
+.flash-container{
+
+    margin-bottom:20px;
+
+}
+
+.flash{
+
+    padding:12px;
+
+    margin-bottom:10px;
+
+    border-radius:8px;
+
+    font-weight:600;
+
+    animation:fade .3s;
+
+}
+
+.flash.success{
+
+    background:#d1fae5;
+
+    color:#065f46;
+
+}
+
+.flash.error{
+
+    background:#fee2e2;
+
+    color:#991b1b;
+
+}
+
+.flash.warning{
+
+    background:#fef3c7;
+
+    color:#92400e;
+
+}
+
+.flash.danger{
+
+    background:#fee2e2;
+
+    color:#991b1b;
+
+}
+</style>
+
+<script>
+const flashes = document.querySelectorAll(".flash");
+flashes.forEach(function (flash) {
+
+    setTimeout(function () {
+
+        flash.style.transition = "0.5s";
+
+        flash.style.opacity = "0";
+
+        flash.style.transform = "translateY(-10px)";
+
+        setTimeout(function () {
+
+            flash.remove();
+
+        }, 500);
+
+    }, 10000);
+
+});
+</script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* ==========================================
+       LOGIN / REGISTER TABS
+    ========================================== */
+
+    const tabButtons =
+        document.querySelectorAll(".tab-button");
+
+    const tabContents =
+        document.querySelectorAll(".tab-content");
+
+    tabButtons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            tabButtons.forEach(function (b) {
+
+                b.classList.remove("active");
+
+            });
+
+            tabContents.forEach(function (c) {
+
+                c.classList.remove("active");
+
+            });
+
+            button.classList.add("active");
+
+            const target =
+                document.getElementById(
+                    button.dataset.tab
+                );
+
+            if (target) {
+
+                target.classList.add("active");
+
+            }
+
+        });
+
+    });
+
+    /* ==========================================
+       REGISTER ROLE SWITCHING
+    ========================================== */
+
+    const roleSelect =
+        document.getElementById(
+            "register_role"
+        );
+
+    const studentForm =
+        document.getElementById(
+            "student-register"
+        );
+
+    const institutionForm =
+        document.getElementById(
+            "institution-register"
+        );
+
+    if (
+        roleSelect &&
+        studentForm &&
+        institutionForm
+    ) {
+
+        function updateRegistrationForm() {
+
+            if (
+                roleSelect.value ===
+                "institution_admin"
+            ) {
+
+                studentForm.style.display =
+                    "none";
+
+                institutionForm.style.display =
+                    "flex";
+
+            }
+            else {
+
+                studentForm.style.display =
+                    "flex";
+
+                institutionForm.style.display =
+                    "none";
+
+            }
+
+        }
+
+        roleSelect.addEventListener(
+            "change",
+            updateRegistrationForm
+        );
+
+        updateRegistrationForm();
+
+    }
+
+	/* ==========================================
+	   INSTITUTION SEARCH
+	========================================== */
+
+	const searchBox =
+		document.getElementById(
+			"institution_search"
+		);
+
+	const hiddenId =
+		document.getElementById(
+			"institution_id"
+		);
+
+	const results =
+		document.getElementById(
+			"institution_results"
+		);
+
+	let searchTimer = null;
+
+	let currentPage = 1;
+
+	let hasNextPage = true;
+
+	let loading = false;
+
+	let currentQuery = "";
+
+	let highlightedIndex = -1;
+
+	let loadedInstitutions = [];
+	
+	function loadInstitutions(
+		reset=false
+	){
+
+		if(
+			loading ||
+			!results
+		){
+			return;
+		}
+
+		loading = true;
+
+		if(reset){
+
+			currentPage = 1;
+
+			hasNextPage = true;
+
+			loadedInstitutions = [];
+
+			highlightedIndex = -1;
+
+			results.innerHTML = "";
+
+		}
+
+		fetch(
+
+			"/search_institutions?"
+
+			+ "q=" + encodeURIComponent(currentQuery)
+
+			+ "&page=" + currentPage
+
+			+ "&per_page=50"
+
+		)
+
+		.then(function(response){
+
+			return response.json();
+
+		})
+
+		.then(function(data){
+
+			hasNextPage = data.has_next;
+
+			currentPage = data.page + 1;
+
+			data.institutions.forEach(function(inst){
+
+				loadedInstitutions.push(inst);
+
+				const item =
+					document.createElement("div");
+
+				item.className =
+					"institution-item";
+
+				item.innerHTML =
+
+					'<div class="institution-name">'
+					+ inst.name +
+					'</div>'
+
+					+
+
+					'<div class="institution-code">'
+					+ (inst.code || "")
+					+ '</div>';
+
+				item.addEventListener(
+					"click",
+					function(){
+					selectInstitution(inst);
+					}
+				);
+
+				results.appendChild(item);
+
+			});
+
+			if(
+
+				loadedInstitutions.length===0
+
+			){
+
+				results.innerHTML =
+
+					'<div class="institution-empty">No institutions found.</div>';
+
+			}
+
+			results.style.display="block";
+
+		})
+
+		.finally(function(){
+
+			loading=false;
+
+		});
+
+	}	
+	function selectInstitution(inst){
+		//console.log("Selected:", inst);//
+		searchBox.value = inst.name;
+		hiddenId.value = inst.id;
+		// Show that a valid institution has been selected
+		searchBox.style.borderColor = "#198754";		
+		console.log("Hidden value:", hiddenId.value);
+		results.style.display = "none";		
+	}	
+	searchBox.addEventListener(
+		"focus",
+		function(){
+
+			if(
+
+				loadedInstitutions.length===0
+
+			){
+
+				currentQuery="";
+
+				loadInstitutions(true);
+
+			}
+
+			else{
+
+				results.style.display="block";
+
+			}
+
+		}
+	);
+	searchBox.addEventListener(
+		"input",
+		function(){
+			/** User changed the text, so the previous selection is
+			no longer valid**/
+			hiddenId.value = "";
+			// Show that no valid institution is currently selected
+			searchBox.style.borderColor = "#dc3545";			
+			clearTimeout(searchTimer);
+			currentQuery = this.value.trim();
+			searchTimer = setTimeout(function(){
+				loadInstitutions(true);
+
+			},200);
+		/**	console.log("INPUT EVENT");
+			console.log("Current hidden:", hiddenId.value);**/		
+
+		}
+	);
+	results.addEventListener(
+		"scroll",
+		function(){
+
+			if(
+				!hasNextPage ||
+				loading
+			){
+				return;
+			}
+
+			const nearBottom =
+
+				results.scrollTop
+				+
+				results.clientHeight
+				>=
+				results.scrollHeight
+				-20;
+
+			if(nearBottom){
+
+				loadInstitutions(false);
+
+			}
+
+		}
+	);	
+	
+	document.addEventListener(
+		"click",
+		function(e){
+
+			if(
+				!e.target.closest(
+					".institution-picker"
+				)
+			){
+
+				results.style.display="none";
+
+			}
+
+		}
+	);	
+
+/* ==========================================
+   STUDENT REGISTRATION VALIDATION
+========================================== */
+
+const studentRegisterForm =
+    document.getElementById("student-register");
+
+if (studentRegisterForm) {
+
+    studentRegisterForm.addEventListener(
+        "submit",
+        function (e) {
+
+            const institutionName =
+                searchBox.value.trim();
+
+            const institutionId =
+                hiddenId.value.trim();
+
+            if (!institutionName) {
+
+                e.preventDefault();
+
+                alert(
+                    "Please search and select an institution."
+                );
+
+                searchBox.focus();
+
+                return;
+
+            }
+
+            if (!institutionId) {
+
+                e.preventDefault();
+
+                alert(
+                    "Please select an institution from the search results instead of typing its name."
+                );
+
+                searchBox.focus();
+
+                return;
+
+            }
+
+        }
+    );
+
+}
+
+});
+
+function updateInstitutionRegistrationUI() {
+
+    const type =
+        document.getElementById(
+            "institution_registration_type"
+        ).value;
+
+    document.getElementById(
+        "newInstitutionSection"
+    ).style.display = "none";
+
+    document.getElementById(
+        "existingInstitutionSection"
+    ).style.display = "none";
+
+    document.getElementById(
+        "noInstitutionSection"
+    ).style.display = "none";
+
+    if (type === "new") {
+
+        document.getElementById(
+            "newInstitutionSection"
+        ).style.display = "";
+
+    }
+
+    else if (type === "existing") {
+
+        document.getElementById(
+            "existingInstitutionSection"
+        ).style.display = "";
+
+    }
+
+    else {
+
+        document.getElementById(
+            "noInstitutionSection"
+        ).style.display = "";
+
+    }
+
+}
+
+document
+.getElementById("institution_registration_type")
+.addEventListener(
+    "change",
+    updateInstitutionRegistrationUI
+);
+
+updateInstitutionRegistrationUI();
+</script>
+
+{% endblock %}
