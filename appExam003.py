@@ -89,9 +89,9 @@ serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 # =========================================================
 # POSTGRESQL CONFIG
 # =========================================================
-##DB_USER = "postgres"
-##DB_PASSWORD = "ABCD1234"
-##DB_HOST = "localhost"
+DB_USER = "postgres"
+DB_PASSWORD = "ABCD1234"
+DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "examdb"
 #=======PostgreSQL configuration=======
@@ -12507,7 +12507,7 @@ def dev_reactivate_accounts():
 # ---------- Main ----------
 if __name__ == "__main__":
     with app.app_context():
-##        sync_database_schema()
+        sync_database_schema()
         ensure_free_institution()
 ##        migrate_legacy_records_to_free_institution()
         migrate_null_records_to_free()
