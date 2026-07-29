@@ -25,3 +25,6 @@ xhtml2pdf
 cryptography
 psycopg2-binary
 eventlet
+gunicorn
+python-dotenv
+Pillow
