@@ -51,20 +51,37 @@ def resource_path(relative_path):
 app = Flask(__name__, instance_path=resource_path("instance"))
 
 # =========================================================
-# ENCRYPTION KEY
+#ENCRYPTION KEYS FOR eccrypting/decrypting texts like password
 # =========================================================
-KEY_FILE = resource_path("instance/secret.key")
-def load_key():
-    if not os.path.exists(KEY_FILE):
-        key = Fernet.generate_key()
-        with open(KEY_FILE, "wb") as f:
-            f.write(key)
-    with open(KEY_FILE, "rb") as f:
-        return f.read()
 
-cipher = Fernet(load_key())
-# Secret key for sessions
-app.config["SECRET_KEY"] = os.urandom(24)
+##====ENCRYPTION KEY for render, to stored in Render's environment====    
+#FERNET_KEY = txzxxakXxuZhouatEXP35gxkto1qba4HZuEZMP5VlQs=    
+    # Running on Render
+from cryptography.fernet import Fernet
+fernet_key = os.environ.get("FERNET_KEY")
+if fernet_key:
+    cipher = Fernet(fernet_key.encode())    
+else:
+    # Running locally
+# ENCRYPTION KEY for windows, stored in a file    
+    KEY_FILE = resource_path("instance/secret.key")
+    def load_key():
+        if not os.path.exists(KEY_FILE):
+            key = Fernet.generate_key()
+            with open(KEY_FILE, "wb") as f:
+                f.write(key)
+        with open(KEY_FILE, "rb") as f:
+            return f.read()
+    cipher = Fernet(load_key())
+
+# =========================================================
+#SECRET KEYS FOR login sessions
+# =========================================================
+#===set Secret key environment variable for render online===
+#SECRET_KEY = K8m/Qw9!Lp2^Xt7@Ns5$Hr4&Vz1*Da6YBc0Fg3Pm8Rw
+#====Secret key for Windows - sessions====
+app.config["SECRET_KEY"] = os.environ.get(
+    "SECRET_KEY", os.urandom(24) )
 # ------Generate Email Reset Tokens------
 serializer = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 
@@ -77,8 +94,17 @@ DB_PASSWORD = "ABCD1234"
 DB_HOST = "localhost"
 DB_PORT = "5432"
 DB_NAME = "examdb"
-app.config['SQLALCHEMY_DATABASE_URI'] = (
-    "postgresql+psycopg2://postgres:ABCD1234@localhost/examdb" )
+#=======PostgreSQL configuration=======
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    # Render provides postgres:// sometimes; SQLAlchemy expects postgresql://
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+else:
+    # Local development
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        "postgresql+psycopg2://postgres:ABCD1234@localhost/examdb"
+    )
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 # Initialize database and migration
@@ -12437,14 +12463,25 @@ def dev_reactivate_accounts():
     )
 
     return redirect(url_for("dashboard"))
+
+
+###=====Generate Fernet key=====
+##@app.route("/temp/generate-fernet-key")
+##@login_required
+##@roles_required("global_admin")
+##def generate_fernet_key():
+##    from cryptography.fernet import Fernet
+##
+##    key = Fernet.generate_key().decode()
+##    return f"<pre>{key}</pre>"
 ### =========================================================
 ### TEMPORARY - FIX INSTITUTION ADMIN FLAG
 ### RUN ONCE THEN DELETE THIS ROUTE
 ### =========================================================
 ##@app.route("/temp/fix-institution-admin-flag")
 ##@login_required
-##@roles_required("admin")
-##def temp_fix_institution_admin_flag():
+##@roles_required("global_admin")
+##def temp_fix_institution_admin_flag():  
 ##    current = get_current_user()
 ##    if not current.is_global:
 ##        abort(403)
